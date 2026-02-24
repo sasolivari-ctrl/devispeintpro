@@ -1,0 +1,3617 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>DevisPeint Pro</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink:       #111820;
+  --ink2:      #2C3A48;
+  --cream:     #F7F4EE;
+  --cream2:    #EAE6DC;
+  --gold:      #C8951E;
+  --gold-lt:   #F0D47A;
+  --gold-pale: #FBF5DF;
+  --teal:      #1A6B57;
+  --teal-lt:   #E2F0EC;
+  --red:       #C0392B;
+  --white:     #FFFFFF;
+  --sh:        0 2px 16px rgba(17,24,32,.08);
+  --sh-lg:     0 8px 40px rgba(17,24,32,.14);
+  --radius:    14px;
+  --sidebar-w: 230px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;font-family:'Plus Jakarta Sans',sans-serif;background:var(--cream);color:var(--ink);overflow-x:hidden;}
+
+/* ══ LAYOUT ══ */
+.app{display:flex;height:100vh;overflow:hidden;}
+
+/* ══ SIDEBAR ══ */
+.sidebar{
+  width:var(--sidebar-w);flex-shrink:0;background:var(--ink);
+  display:flex;flex-direction:column;overflow:hidden;
+  transition:width .25s ease;z-index:200;
+}
+.sb-logo{padding:20px 18px 16px;border-bottom:1px solid rgba(255,255,255,.07);}
+.logo-text{font-family:'Playfair Display',serif;font-size:22px;color:var(--gold);line-height:1;}
+.logo-text span{color:var(--white);font-style:italic;}
+.logo-sub{font-size:10px;color:rgba(255,255,255,.3);letter-spacing:1.5px;text-transform:uppercase;margin-top:3px;}
+
+.sb-company{padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.07);cursor:pointer;transition:background .2s;}
+.sb-company:hover{background:rgba(255,255,255,.04);}
+.sb-company-logo{width:36px;height:36px;border-radius:9px;background:var(--gold);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:var(--ink);margin-bottom:8px;}
+.sb-company-name{font-size:13px;font-weight:700;color:var(--white);}
+.sb-company-edit{font-size:11px;color:var(--gold);margin-top:2px;}
+
+.sb-nav{flex:1;padding:10px 0;overflow-y:auto;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:11px 18px;font-size:13.5px;font-weight:500;color:rgba(255,255,255,.5);cursor:pointer;transition:all .18s;border-left:3px solid transparent;user-select:none;}
+.nav-item:hover{color:rgba(255,255,255,.85);background:rgba(255,255,255,.04);}
+.nav-item.active{color:var(--gold);background:rgba(200,149,30,.1);border-left-color:var(--gold);}
+.nav-icon{font-size:16px;width:20px;text-align:center;flex-shrink:0;}
+.nav-badge{margin-left:auto;background:var(--gold);color:var(--ink);font-size:10px;font-weight:800;padding:2px 7px;border-radius:20px;}
+
+.sb-bottom{padding:14px 16px;border-top:1px solid rgba(255,255,255,.07);}
+.sb-version{font-size:11px;color:rgba(255,255,255,.2);text-align:center;}
+
+/* ══ MAIN ══ */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;}
+
+.topbar{
+  height:58px;background:var(--white);border-bottom:1.5px solid var(--cream2);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 24px;flex-shrink:0;gap:12px;
+}
+.topbar-left{display:flex;align-items:center;gap:12px;}
+.btn-hamburger{display:none;background:none;border:none;cursor:pointer;font-size:22px;color:var(--ink);}
+.topbar-title{font-family:'Playfair Display',serif;font-size:20px;color:var(--ink);}
+.topbar-right{display:flex;gap:8px;align-items:center;}
+.btn-new{display:flex;align-items:center;gap:6px;padding:9px 16px;background:var(--ink);color:var(--white);border:none;border-radius:9px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;white-space:nowrap;}
+.btn-new:hover{background:var(--teal);}
+
+/* ══ VIEWS ══ */
+.view-container{flex:1;overflow-y:auto;padding:24px;}
+.view{display:none;}
+.view.active{display:block;animation:fadeUp .3s ease both;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+
+/* ══ DASHBOARD ══ */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px;}
+.stat-card{background:var(--white);border-radius:var(--radius);padding:18px 20px;box-shadow:var(--sh);}
+.stat-card.dark{background:var(--ink);}
+.stat-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:#999;margin-bottom:8px;}
+.stat-card.dark .stat-label{color:rgba(255,255,255,.4);}
+.stat-val{font-family:'Playfair Display',serif;font-size:30px;color:var(--ink);line-height:1;}
+.stat-card.dark .stat-val{color:var(--gold);}
+.stat-sub{font-size:12px;color:#bbb;margin-top:5px;}
+.stat-card.dark .stat-sub{color:rgba(255,255,255,.3);}
+
+.section-title{font-family:'Playfair Display',serif;font-size:18px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;}
+.card{background:var(--white);border-radius:var(--radius);box-shadow:var(--sh);overflow:hidden;}
+
+/* ══ DEVIS LIST TABLE ══ */
+.devis-table{width:100%;border-collapse:collapse;}
+.devis-table th{background:var(--cream);padding:10px 16px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:#888;border-bottom:1.5px solid var(--cream2);}
+.devis-table td{padding:13px 16px;border-bottom:1px solid var(--cream2);font-size:13.5px;vertical-align:middle;}
+.devis-table tr:last-child td{border-bottom:none;}
+.devis-table tr:hover td{background:var(--gold-pale);cursor:pointer;}
+.devis-num{font-weight:700;color:var(--ink);font-size:13px;}
+.devis-client{font-weight:600;}
+.devis-objet{font-size:12px;color:#aaa;margin-top:2px;}
+.devis-amount{font-weight:700;text-align:right;}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:.3px;}
+.b-wait{background:#FFF3CD;color:#856404;}
+.b-ok{background:var(--teal-lt);color:var(--teal);}
+.b-no{background:#FDECEA;color:var(--red);}
+
+/* ══ NOUVEAU DEVIS ══ */
+.devis-cols{display:grid;grid-template-columns:1fr 400px;gap:18px;align-items:start;}
+.panel{background:var(--white);border-radius:var(--radius);padding:22px;box-shadow:var(--sh);margin-bottom:16px;}
+.panel:last-child{margin-bottom:0;}
+.panel-hd{display:flex;align-items:center;gap:10px;margin-bottom:5px;}
+.panel-icon{width:30px;height:30px;border-radius:8px;background:var(--gold);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
+.panel-title{font-family:'Playfair Display',serif;font-size:17px;}
+.panel-sub{font-size:12.5px;color:#999;margin-bottom:16px;padding-left:40px;}
+
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:11px;}
+.col-span-2{grid-column:1/-1;}
+.field{display:flex;flex-direction:column;gap:5px;}
+.field label{font-size:12px;font-weight:700;color:var(--ink2);}
+.inp{width:100%;padding:10px 13px;border:1.5px solid #E2DDD4;border-radius:9px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;color:var(--ink);background:var(--cream);transition:all .2s;}
+.inp:focus{outline:none;border-color:var(--gold);background:var(--white);}
+select.inp{cursor:pointer;}
+textarea.inp{min-height:130px;resize:vertical;line-height:1.7;}
+
+.voice-row{display:flex;gap:8px;margin-top:10px;}
+.btn-voice{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;padding:11px;background:var(--teal-lt);color:var(--teal);border:1.5px solid #BFDED7;border-radius:9px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;}
+.btn-voice:hover{background:#C5E8DF;}
+.btn-voice.rec{background:#FDECEA;color:var(--red);border-color:#F5C0BC;animation:pulse 1s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.55}}
+.btn-clear-voice{padding:11px 14px;background:var(--cream);border:1.5px solid var(--cream2);border-radius:9px;cursor:pointer;font-size:14px;transition:all .2s;}
+.btn-clear-voice:hover{border-color:var(--red);color:var(--red);}
+
+.hint{background:var(--gold-pale);border:1.5px solid #E8D06A;border-radius:8px;padding:10px 13px;font-size:12px;color:#7A600E;line-height:1.6;margin-top:10px;}
+
+.btn-generate{width:100%;padding:14px;background:var(--ink);color:var(--white);border:none;border-radius:10px;font-family:'Plus Jakarta Sans',sans-serif;font-size:15px;font-weight:700;cursor:pointer;margin-top:14px;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px;}
+.btn-generate:hover:not(:disabled){background:var(--teal);}
+.btn-generate:disabled{opacity:.45;cursor:not-allowed;}
+
+.loading-bar{display:none;margin-top:12px;padding:13px;background:var(--gold-pale);border:1.5px solid #E8D06A;border-radius:9px;text-align:center;font-size:13px;color:#7A600E;font-weight:500;}
+.loading-bar.show{display:block;}
+.spin{display:inline-block;width:13px;height:13px;border:2.5px solid #E8D06A;border-top-color:var(--gold);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* PREVIEW */
+.preview-wrap{position:sticky;top:0;}
+.preview-empty{text-align:center;padding:50px 20px;color:#ccc;}
+.preview-empty .big{font-size:44px;margin-bottom:10px;}
+
+.dv-header{background:var(--ink);border-radius:10px;padding:18px;margin-bottom:12px;}
+.dv-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;}
+.dv-company{font-size:12px;font-weight:700;color:var(--gold);}
+.dv-num{font-family:'Playfair Display',serif;font-size:22px;color:var(--white);}
+.dv-meta{font-size:11px;color:rgba(255,255,255,.4);margin-top:2px;}
+.dv-client{background:rgba(255,255,255,.07);border-radius:7px;padding:10px 12px;font-size:12px;}
+.dv-client-name{font-weight:700;color:var(--white);margin-bottom:2px;}
+.dv-client-info{color:rgba(255,255,255,.55);}
+.dv-objet{font-size:11px;color:rgba(255,255,255,.35);margin-top:5px;font-style:italic;}
+
+.dv-interp{background:var(--cream);border-radius:8px;padding:10px 12px;font-size:12px;color:#777;line-height:1.6;margin-bottom:12px;font-style:italic;}
+
+.dv-table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:12px;}
+.dv-table th{background:var(--ink2);color:var(--gold-lt);padding:7px 10px;text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.5px;font-weight:700;}
+.dv-table th:last-child{text-align:right;}
+.dv-table td{padding:8px 10px;border-bottom:1px solid var(--cream2);color:var(--ink);vertical-align:top;}
+.dv-table td:last-child{text-align:right;font-weight:600;white-space:nowrap;}
+.dv-table tr:hover td{background:var(--gold-pale);}
+.dv-piece-header td{
+  background:var(--ink)!important;
+  font-family:'Playfair Display',serif;
+  font-size:14px;font-weight:700;
+  color:var(--gold);
+  padding:10px 14px;
+  text-align:left!important;
+  letter-spacing:.3px;
+}
+.dv-zone-header td{
+  background:var(--cream2)!important;
+  font-size:11px;font-weight:800;
+  color:var(--ink2);
+  padding:6px 14px 6px 22px;
+  text-align:left!important;
+  text-transform:uppercase;
+  letter-spacing:.8px;
+  border-left:3px solid var(--gold);
+}
+.dv-prestation td{
+  padding:9px 14px 9px 28px!important;
+}
+.dv-piece-subtotal td{
+  background:var(--gold-pale)!important;
+  font-size:12px;font-weight:700;
+  color:var(--gold);
+  padding:7px 14px!important;
+  text-align:right!important;
+  border-top:1px solid var(--gold-lt)!important;
+}
+.dv-forfait td{background:var(--gold-pale);border-top:2px solid var(--gold-lt);}
+.dv-prest-name{font-weight:500;}
+.dv-prest-note{font-size:10px;color:#aaa;margin-top:1px;}
+
+.dv-totaux{background:var(--cream);border-radius:8px;padding:12px 14px;}
+.tot-row{display:flex;justify-content:space-between;font-size:12.5px;padding:5px 0;border-bottom:1px solid #DDD9D0;}
+.tot-row:last-child{border:none;font-family:'Playfair Display',serif;font-size:19px;padding-top:10px;margin-top:4px;border-top:2px solid var(--ink);}
+.tot-row.acompte{font-size:12px;color:#aaa;padding-top:8px;}
+
+.dv-actions{display:flex;gap:8px;margin-top:12px;}
+.btn-dv{flex:1;padding:10px;border-radius:8px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;border:none;display:flex;align-items:center;justify-content:center;gap:5px;}
+.btn-dv-save{background:var(--teal);color:var(--white);}
+.btn-dv-save:hover{background:#124d3e;}
+.btn-dv-pdf{background:var(--cream2);color:var(--ink);}
+.btn-dv-pdf:hover{background:var(--cream);}
+.btn-dv-saved{background:var(--teal-lt);color:var(--teal);cursor:default!important;}
+
+/* ══ PROFIL ══ */
+.profil-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+.section-card{background:var(--white);border-radius:var(--radius);padding:22px;box-shadow:var(--sh);}
+.sc-title{font-family:'Playfair Display',serif;font-size:16px;padding-bottom:12px;border-bottom:1.5px solid var(--cream2);margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+
+.logo-zone{border:2px dashed #D5D0C4;border-radius:10px;padding:20px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:14px;position:relative;overflow:hidden;}
+.logo-zone:hover{border-color:var(--gold);}
+.logo-zone img{max-width:100%;max-height:80px;object-fit:contain;}
+.logo-zone-placeholder{color:#ccc;font-size:13px;}
+.logo-zone-placeholder .icon{font-size:32px;margin-bottom:6px;}
+.logo-file-input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+
+.btn-save{padding:11px 22px;background:var(--ink);color:var(--white);border:none;border-radius:9px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13.5px;font-weight:700;cursor:pointer;transition:all .2s;margin-top:16px;}
+.btn-save:hover{background:var(--teal);}
+
+/* ══ TARIFS ══ */
+.tarifs-table{width:100%;border-collapse:collapse;font-size:13px;}
+.tarifs-table th{background:var(--ink);color:var(--gold-lt);padding:10px 14px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.5px;}
+.tarifs-table td{padding:9px 14px;border-bottom:1px solid var(--cream2);}
+.tarifs-table tr:nth-child(even) td{background:var(--cream);}
+.tarifs-cat-row td{background:var(--cream2)!important;font-size:11px;font-weight:800;color:var(--ink2);border-left:3px solid var(--gold);padding:7px 14px;}
+.price-input{width:80px;padding:6px 9px;border:1.5px solid #E2DDD4;border-radius:7px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;text-align:right;background:var(--white);}
+.price-input:focus{outline:none;border-color:var(--gold);}
+
+/* ══ HISTORIQUE ══ */
+.hist-bar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center;}
+.filter-chip{padding:7px 15px;border:1.5px solid #D5D0C4;border-radius:20px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;background:var(--white);color:var(--ink2);transition:all .18s;}
+.filter-chip:hover,.filter-chip.active{background:var(--ink);color:var(--white);border-color:var(--ink);}
+.search-box{flex:1;min-width:160px;padding:9px 14px;border:1.5px solid #D5D0C4;border-radius:20px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;background:var(--white);}
+.search-box:focus{outline:none;border-color:var(--gold);}
+
+/* ══ MOBILE BOTTOM NAV ══ */
+.mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--white);border-top:1.5px solid var(--cream2);z-index:300;padding:6px 0 env(safe-area-inset-bottom,6px);}
+.mobile-nav-inner{display:flex;justify-content:space-around;}
+.mob-btn{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 10px;border:none;background:none;cursor:pointer;color:#aaa;font-family:'Plus Jakarta Sans',sans-serif;font-size:10px;font-weight:600;transition:color .18s;min-width:52px;}
+.mob-btn.active{color:var(--gold);}
+.mob-btn .icon{font-size:20px;}
+
+/* ══ TOAST ══ */
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(10px);background:var(--ink);color:var(--white);padding:12px 22px;border-radius:30px;font-size:14px;font-weight:500;z-index:9999;opacity:0;transition:all .3s;pointer-events:none;white-space:nowrap;box-shadow:var(--sh-lg);}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.toast.ok{background:var(--teal);}
+.toast.err{background:var(--red);}
+
+/* ══ RENTABILITÉ ══ */
+.rent-top{display:grid;grid-template-columns:1fr 340px;gap:18px;margin-bottom:18px;align-items:start;}
+.rent-params{background:var(--white);border-radius:var(--radius);padding:22px;box-shadow:var(--sh);}
+.rent-params-title{font-family:'Playfair Display',serif;font-size:16px;margin-bottom:4px;}
+.rent-params-sub{font-size:12px;color:#999;margin-bottom:18px;}
+.param-row{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--cream2);}
+.param-row:last-of-type{border-bottom:none;}
+.param-label{font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px;}
+.param-icon{font-size:18px;width:28px;text-align:center;}
+.param-sub{font-size:11px;color:#aaa;font-weight:400;display:block;margin-top:1px;}
+.param-input-wrap{display:flex;align-items:center;gap:6px;}
+.param-input{width:70px;padding:7px 10px;border:1.5px solid #E2DDD4;border-radius:8px;font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;font-weight:700;text-align:right;color:var(--ink);background:var(--cream);}
+.param-input:focus{outline:none;border-color:var(--gold);background:var(--white);}
+.param-pct{font-size:13px;font-weight:700;color:#888;}
+.rent-warning{background:#FFF8E1;border:1.5px solid #FFE082;border-radius:9px;padding:10px 14px;font-size:12px;color:#7B5800;margin-top:14px;line-height:1.6;}
+
+.rent-result{background:var(--ink);border-radius:var(--radius);padding:22px;box-shadow:var(--sh-lg);color:var(--white);}
+.rent-result-title{font-family:'Playfair Display',serif;font-size:16px;color:var(--gold);margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+.rent-line{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.08);}
+.rent-line:last-of-type{border-bottom:none;}
+.rent-line-label{font-size:13px;color:rgba(255,255,255,.65);}
+.rent-line-label.neg{color:#F97676;}
+.rent-line-label.pos{color:#6FCF97;}
+.rent-line-val{font-size:14px;font-weight:700;color:var(--white);}
+.rent-line-val.neg{color:#F97676;}
+.rent-line-val.pos{color:#6FCF97;}
+.rent-total-line{margin-top:12px;padding-top:14px;border-top:2px solid rgba(255,255,255,.15);}
+.rent-total-label{font-family:'Playfair Display',serif;font-size:17px;color:var(--white);}
+.rent-total-val{font-family:'Playfair Display',serif;font-size:28px;}
+.rent-margin-bar{margin-top:16px;background:rgba(255,255,255,.08);border-radius:20px;height:10px;overflow:hidden;}
+.rent-margin-fill{height:100%;border-radius:20px;transition:width .6s ease;}
+.rent-margin-label{font-size:11px;color:rgba(255,255,255,.4);margin-top:6px;text-align:right;}
+
+.rent-history{background:var(--white);border-radius:var(--radius);padding:22px;box-shadow:var(--sh);}
+.rent-history-title{font-family:'Playfair Display',serif;font-size:16px;margin-bottom:4px;}
+.rent-history-sub{font-size:12px;color:#999;margin-bottom:16px;}
+.rent-hist-table{width:100%;border-collapse:collapse;font-size:13px;}
+.rent-hist-table th{background:var(--cream);padding:9px 12px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#888;border-bottom:1.5px solid var(--cream2);}
+.rent-hist-table td{padding:11px 12px;border-bottom:1px solid var(--cream2);vertical-align:middle;}
+.rent-hist-table tr:last-child td{border-bottom:none;}
+.rent-hist-table tr:hover td{background:var(--gold-pale);}
+.bar-cell{width:120px;}
+.mini-bar-bg{background:var(--cream2);border-radius:10px;height:7px;overflow:hidden;}
+.mini-bar-fill{height:100%;border-radius:10px;}
+.rent-empty{text-align:center;padding:40px;color:#ccc;font-size:14px;}
+
+/* ══ PHOTO / SCAN ══ */
+.input-tabs{display:flex;gap:0;border-bottom:2px solid var(--cream2);margin-bottom:16px;}
+.inp-tab{padding:9px 16px;border:none;background:transparent;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:600;color:#aaa;cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;transition:all .2s;}
+.inp-tab.active{color:var(--ink);border-bottom-color:var(--gold);}
+.tab-pane{display:none;}
+.tab-pane.active{display:block;}
+
+.photo-drop{border:2px dashed #D5D0C4;border-radius:12px;padding:28px 20px;text-align:center;cursor:pointer;transition:all .2s;position:relative;background:var(--cream);min-height:140px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;}
+.photo-drop:hover,.photo-drop.drag{border-color:var(--gold);background:var(--gold-pale);}
+.photo-drop .drop-icon{font-size:36px;}
+.photo-drop .drop-title{font-size:14px;font-weight:700;color:var(--ink);}
+.photo-drop .drop-sub{font-size:12px;color:#aaa;line-height:1.5;}
+.photo-file{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.photo-preview-wrap{position:relative;margin-top:10px;border-radius:10px;overflow:hidden;border:1.5px solid var(--cream2);}
+.photo-preview-wrap img{width:100%;max-height:220px;object-fit:contain;display:block;background:#000;}
+.photo-preview-wrap .photo-remove{position:absolute;top:8px;right:8px;background:rgba(0,0,0,.6);color:#fff;border:none;border-radius:50%;width:28px;height:28px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.photo-hint{background:var(--gold-pale);border:1.5px solid #E8D06A;border-radius:8px;padding:9px 13px;font-size:12px;color:#7A600E;line-height:1.6;margin-top:10px;}
+.analyse-source-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;background:var(--teal-lt);color:var(--teal);margin-bottom:8px;}
+
+/* ══ FOURNITURES ══ */
+.four-header{background:var(--ink);border-radius:var(--radius);padding:20px 24px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;}
+.four-header-left .four-title{font-family:'Playfair Display',serif;font-size:22px;color:var(--gold);}
+.four-header-left .four-sub{font-size:13px;color:rgba(255,255,255,.45);margin-top:3px;}
+.four-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin-bottom:24px;}
+.four-card{background:var(--white);border-radius:var(--radius);padding:18px 20px;box-shadow:var(--sh);border-top:4px solid var(--gold);}
+.four-card.accessoires{border-top-color:var(--teal);}
+.four-card-cat{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:#aaa;margin-bottom:6px;}
+.four-card-name{font-size:15px;font-weight:700;color:var(--ink);margin-bottom:12px;}
+.four-card-surface{font-size:12px;color:#888;margin-bottom:10px;padding:6px 10px;background:var(--cream);border-radius:6px;}
+.cond-row{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--cream2);}
+.cond-row:last-child{border-bottom:none;}
+.cond-label{font-size:12px;color:#888;}
+.cond-val{font-size:14px;font-weight:700;color:var(--ink);}
+.cond-val.best{color:var(--teal);background:var(--teal-lt);padding:2px 8px;border-radius:6px;}
+.four-total-bar{background:var(--white);border-radius:var(--radius);padding:20px 24px;box-shadow:var(--sh);margin-bottom:20px;display:flex;align-items:center;gap:20px;flex-wrap:wrap;}
+.four-total-item{text-align:center;}
+.four-total-val{font-family:'Playfair Display',serif;font-size:26px;color:var(--ink);}
+.four-total-label{font-size:11px;color:#aaa;text-transform:uppercase;letter-spacing:.5px;margin-top:2px;}
+.four-devis-select{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;align-items:center;}
+.four-devis-btn{padding:8px 16px;border:1.5px solid #D5D0C4;border-radius:20px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;background:var(--white);color:var(--ink2);transition:all .18s;white-space:nowrap;}
+.four-devis-btn.active{background:var(--ink);color:var(--white);border-color:var(--ink);}
+.btn-print-four{display:flex;align-items:center;gap:6px;padding:10px 18px;background:var(--ink);color:var(--white);border:none;border-radius:9px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;}
+.btn-print-four:hover{background:var(--teal);}
+.acces-table{width:100%;border-collapse:collapse;font-size:13px;}
+.acces-table th{background:var(--cream);padding:9px 14px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#888;border-bottom:1.5px solid var(--cream2);}
+.acces-table td{padding:10px 14px;border-bottom:1px solid var(--cream2);}
+.acces-table tr:last-child td{border-bottom:none;}
+/* ══ ESTIMATION TEMPS ══ */
+.temps-box{background:var(--ink2);border-radius:10px;padding:13px 15px;margin-bottom:12px;display:flex;gap:12px;align-items:flex-start;}
+.temps-icon{font-size:22px;flex-shrink:0;}
+.temps-body{}
+.temps-title{font-size:12px;font-weight:800;color:var(--gold);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;}
+.temps-detail{font-size:12px;color:rgba(255,255,255,.7);line-height:1.6;}
+.temps-warning{font-size:11px;color:rgba(255,255,255,.35);margin-top:4px;font-style:italic;}
+.temps-planning{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px;}
+.temps-day{padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;background:rgba(255,255,255,.1);color:rgba(255,255,255,.7);}
+.temps-day.work{background:rgba(200,149,30,.25);color:var(--gold-lt);}
+.temps-day.dry{background:rgba(255,255,255,.05);color:rgba(255,255,255,.35);font-style:italic;}
+
+/* ══ ALERTE SOUS-EVALUÉ ══ */
+.alert-box{border-radius:10px;padding:12px 15px;margin-bottom:12px;display:flex;gap:10px;align-items:flex-start;border:1.5px solid;}
+.alert-ok{background:#E8F8F0;border-color:#A8DFC0;}
+.alert-ok .alert-icon{font-size:20px;}
+.alert-ok .alert-title{font-size:12px;font-weight:800;color:var(--teal);text-transform:uppercase;letter-spacing:.5px;}
+.alert-ok .alert-body{font-size:12px;color:#2D8659;line-height:1.5;}
+.alert-warn{background:#FFF8E0;border-color:#F5D960;}
+.alert-warn .alert-title{font-size:12px;font-weight:800;color:#8A6500;text-transform:uppercase;letter-spacing:.5px;}
+.alert-warn .alert-body{font-size:12px;color:#8A6500;line-height:1.5;}
+.alert-danger{background:#FEF0EF;border-color:#F5BCBC;}
+.alert-danger .alert-title{font-size:12px;font-weight:800;color:var(--red);text-transform:uppercase;letter-spacing:.5px;}
+.alert-danger .alert-body{font-size:12px;color:var(--red);line-height:1.5;}
+
+/* ══ NOTES EDIT ══ */
+.note-input{width:100%;padding:5px 8px;border:1.5px solid transparent;border-radius:6px;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;color:#666;background:transparent;resize:none;overflow:hidden;}
+.note-input:hover{border-color:var(--cream2);background:var(--cream);}
+.note-input:focus{outline:none;border-color:var(--gold);background:var(--white);color:var(--ink);}
+
+/* ══ IMPORT / EXPORT ══ */
+.ie-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px;}
+.ie-card{background:var(--white);border-radius:var(--radius);padding:22px;box-shadow:var(--sh);}
+.ie-card-title{font-family:'Playfair Display',serif;font-size:17px;margin-bottom:4px;display:flex;align-items:center;gap:10px;}
+.ie-card-sub{font-size:12px;color:#aaa;margin-bottom:18px;line-height:1.6;}
+.ie-btn{display:flex;align-items:center;gap:8px;width:100%;padding:11px 15px;border-radius:9px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;border:1.5px solid;margin-bottom:9px;text-align:left;}
+.ie-btn:last-child{margin-bottom:0;}
+.ie-btn-csv{background:var(--teal-lt);color:var(--teal);border-color:#BFDED7;}
+.ie-btn-csv:hover{background:#C5E8DF;}
+.ie-btn-json{background:#EEF2FF;color:#4F46E5;border-color:#C7D2FE;}
+.ie-btn-json:hover{background:#E0E7FF;}
+.ie-btn-xml{background:#FFF7ED;color:#C2410C;border-color:#FED7AA;}
+.ie-btn-xml:hover{background:#FFEDD5;}
+.ie-drop{border:2px dashed #D5D0C4;border-radius:10px;padding:24px;text-align:center;cursor:pointer;transition:all .2s;position:relative;background:var(--cream);margin-bottom:12px;}
+.ie-drop:hover,.ie-drop.drag{border-color:var(--gold);background:var(--gold-pale);}
+.ie-drop .ie-drop-icon{font-size:32px;margin-bottom:8px;}
+.ie-drop .ie-drop-title{font-size:14px;font-weight:700;color:var(--ink);}
+.ie-drop .ie-drop-sub{font-size:12px;color:#aaa;margin-top:4px;line-height:1.5;}
+.ie-file{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.ie-result{background:var(--teal-lt);border:1.5px solid #BFDED7;border-radius:9px;padding:12px 15px;font-size:13px;color:var(--teal);margin-top:10px;display:none;}
+.ie-result.show{display:block;}
+.ie-result.err{background:#FDECEA;border-color:#F5C0BC;color:var(--red);}
+.ie-select-row{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+.ie-select-btn{padding:7px 14px;border:1.5px solid #D5D0C4;border-radius:20px;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;background:var(--white);color:var(--ink2);transition:all .18s;}
+.ie-select-btn.active{background:var(--ink);color:var(--white);border-color:var(--ink);}
+.ie-preview{background:var(--cream);border-radius:8px;padding:12px;font-size:11px;color:#777;font-family:monospace;max-height:140px;overflow-y:auto;margin-top:10px;white-space:pre;border:1.5px solid var(--cream2);}
+@media(max-width:900px){.ie-grid{grid-template-columns:1fr;}}
+/* ══ ÉDITION INLINE ══ */
+.dv-edit-cell{
+  background:transparent;border:1.5px solid transparent;
+  border-radius:5px;padding:3px 6px;width:100%;
+  font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;
+  color:var(--ink);transition:all .15s;cursor:text;
+}
+.dv-edit-cell:hover{border-color:var(--cream2);background:var(--cream);}
+.dv-edit-cell:focus{outline:none;border-color:var(--gold);background:var(--white);cursor:text;}
+.dv-edit-num{width:75px;text-align:right;}
+.dv-edit-pu{width:80px;text-align:right;}
+.dv-edit-piece{
+  background:transparent;border:1.5px solid transparent;border-radius:5px;
+  padding:3px 8px;font-family:'Playfair Display',serif;font-size:13px;
+  font-weight:700;color:var(--gold);width:80%;transition:all .15s;
+}
+.dv-edit-piece:hover{border-color:rgba(200,149,30,.3);background:rgba(0,0,0,.2);}
+.dv-edit-piece:focus{outline:none;border-color:var(--gold);background:rgba(0,0,0,.3);}
+.dv-edit-zone{
+  background:transparent;border:1.5px solid transparent;border-radius:5px;
+  padding:2px 6px;font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;
+  font-weight:800;color:var(--ink2);width:70%;transition:all .15s;text-transform:uppercase;
+}
+.dv-edit-zone:hover{border-color:rgba(200,149,30,.3);background:rgba(200,149,30,.08);}
+.dv-edit-zone:focus{outline:none;border-color:var(--gold);}
+.btn-add-row{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:3px 9px;border:1.5px dashed #D5D0C4;border-radius:5px;
+  font-size:11px;font-weight:600;color:#aaa;cursor:pointer;
+  background:transparent;transition:all .15s;font-family:'Plus Jakarta Sans',sans-serif;
+}
+.btn-add-row:hover{border-color:var(--teal);color:var(--teal);background:var(--teal-lt);}
+.btn-del-row{
+  padding:2px 6px;border:none;background:transparent;cursor:pointer;
+  font-size:14px;color:#ddd;transition:all .15s;border-radius:4px;
+}
+.btn-del-row:hover{color:var(--red);background:#FDECEA;}
+.btn-add-piece{
+  display:flex;align-items:center;gap:6px;margin:8px 0;
+  padding:7px 14px;border:1.5px dashed #C8951E;border-radius:8px;
+  font-size:12px;font-weight:700;color:var(--gold);cursor:pointer;
+  background:transparent;width:100%;justify-content:center;
+  transition:all .2s;font-family:'Plus Jakarta Sans',sans-serif;
+}
+.btn-add-piece:hover{background:var(--gold-pale);}
+.btn-add-zone{
+  display:flex;align-items:center;gap:5px;
+  padding:4px 10px;border:1.5px dashed #aaa;border-radius:6px;
+  font-size:11px;font-weight:600;color:#aaa;cursor:pointer;
+  background:transparent;transition:all .15s;font-family:'Plus Jakarta Sans',sans-serif;
+}
+.btn-add-zone:hover{border-color:var(--ink2);color:var(--ink2);}
+.edit-toolbar{
+  display:flex;align-items:center;gap:6px;padding:8px 0 4px;
+  border-bottom:1px solid var(--cream2);margin-bottom:6px;flex-wrap:wrap;
+}
+.edit-toolbar-label{font-size:11px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:.5px;}
+/* ══ FOURNISSEURS ══ */
+.fourn-grid{display:grid;grid-template-columns:300px 1fr;gap:20px;align-items:start;}
+.fourn-list{background:var(--white);border-radius:var(--radius);box-shadow:var(--sh);overflow:hidden;}
+.fourn-list-header{background:var(--ink);padding:14px 16px;display:flex;align-items:center;justify-content:space-between;}
+.fourn-list-title{font-family:'Playfair Display',serif;font-size:15px;color:var(--gold);}
+.fourn-item{padding:12px 16px;border-bottom:1px solid var(--cream2);cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:10px;}
+.fourn-item:hover{background:var(--cream);}
+.fourn-item.active{background:var(--gold-pale);border-left:3px solid var(--gold);}
+.fourn-item-name{font-weight:700;font-size:13px;color:var(--ink);}
+.fourn-item-sub{font-size:11px;color:#aaa;margin-top:2px;}
+.fourn-detail{background:var(--white);border-radius:var(--radius);box-shadow:var(--sh);}
+.fourn-detail-header{background:var(--ink2);padding:16px 20px;border-radius:var(--radius) var(--radius) 0 0;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+.fourn-detail-name{font-family:'Playfair Display',serif;font-size:18px;color:var(--white);}
+.fourn-prod-table{width:100%;border-collapse:collapse;font-size:13px;}
+.fourn-prod-table th{background:var(--cream);padding:9px 14px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#888;border-bottom:1.5px solid var(--cream2);}
+.fourn-prod-table th:last-child{text-align:right;}
+.fourn-prod-table td{padding:10px 14px;border-bottom:1px solid var(--cream2);vertical-align:middle;}
+.fourn-prod-table tr:last-child td{border-bottom:none;}
+.fourn-prod-table tr:hover td{background:var(--cream);}
+.prix-achat-input{width:80px;padding:5px 8px;border:1.5px solid #E2DDD4;border-radius:7px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;text-align:right;background:var(--white);font-weight:700;color:var(--teal);}
+.prix-achat-input:focus{outline:none;border-color:var(--teal);}
+.fourn-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:12px;font-size:11px;font-weight:700;}
+.fourn-badge-ok{background:var(--teal-lt);color:var(--teal);}
+.fourn-badge-miss{background:var(--cream2);color:#aaa;}
+.marge-badge{padding:3px 8px;border-radius:6px;font-size:11px;font-weight:700;}
+.marge-ok{background:#E8F8F0;color:#2D8659;}
+.marge-warn{background:#FFF8E0;color:#8A6500;}
+.marge-danger{background:#FEF0EF;color:var(--red);}
+.btn-add-fourn{display:flex;align-items:center;gap:6px;padding:9px 16px;background:var(--teal);color:var(--white);border:none;border-radius:9px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;}
+.btn-add-fourn:hover{background:#124d3e;}
+.fourn-import-zone{border:2px dashed #D5D0C4;border-radius:10px;padding:16px;text-align:center;cursor:pointer;position:relative;transition:all .2s;background:var(--cream);}
+.fourn-import-zone:hover{border-color:var(--teal);background:var(--teal-lt);}
+.fourn-import-file{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+@media(max-width:900px){.fourn-grid{grid-template-columns:1fr;}}
+/* ══ PRINT ══ */
+@media print {
+  /* Masquer toute l'interface */
+  .sidebar,.topbar,.mobile-nav,.panel-hd,.panel-sub,.btn-generate,
+  .voice-row,.input-tabs,.tab-pane,.hint,.loading-bar,.dv-actions,
+  .btn-new,.topbar-right,.edit-toolbar,.btn-add-row,.btn-add-piece,
+  .btn-add-zone,.btn-del-row,.temps-box,.alert-box,
+  #view-nouveau .panel:first-child{display:none!important;}
+
+  /* Mise en page */
+  .app{display:block;}
+  .main{overflow:visible;}
+  .view-container{padding:0;overflow:visible;}
+  .devis-cols{display:block;}
+  .preview-wrap{position:static;width:100%;padding:0;border:none;box-shadow:none;}
+  #preview-panel{box-shadow:none;border:none;padding:0;}
+
+  /* Couleurs */
+  .dv-header{background:#111820!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .dv-piece-header td{background:#111820!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .dv-zone-header td{background:#F0EDE8!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .dv-piece-subtotal td{background:#FDF8E8!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .dv-forfait td{background:#FDF8E8!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .dv-table th{background:#2A3240!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+
+  /* Inputs editables -> texte pur */
+  .dv-edit-cell,.dv-edit-piece,.dv-edit-zone,.note-input{
+    border:none!important;background:transparent!important;
+    padding:0!important;font-size:inherit!important;
+    color:inherit!important;font-family:inherit!important;
+    font-weight:inherit!important;width:auto!important;
+  }
+  /* Masquer boutons et selects dans tableau */
+  .dv-table select,.dv-table button{display:none!important;}
+  .dv-prestation td:last-child span+button{display:none!important;}
+
+  /* Saut de page */
+  .dv-table{page-break-inside:auto;}
+  .dv-table tr{page-break-inside:avoid;}
+  .dv-totaux{page-break-inside:avoid;}
+}
+
+/* ══ RESPONSIVE ══ */
+@media(max-width:900px){
+  .sidebar{position:fixed;left:-250px;top:0;bottom:0;height:100vh;transition:left .25s ease;box-shadow:var(--sh-lg);}
+  .sidebar.open{left:0;}
+  .btn-hamburger{display:block;}
+  .mobile-nav{display:block;}
+  .view-container{padding:16px 14px 90px;}
+  .devis-cols{grid-template-columns:1fr;}
+  .stats-row{grid-template-columns:1fr 1fr;}
+  .profil-grid{grid-template-columns:1fr;}
+  .grid-2{grid-template-columns:1fr;}
+  .col-span-2{grid-column:1;}
+}
+@media(max-width:480px){
+  .stats-row{grid-template-columns:1fr 1fr;}
+  .stat-val{font-size:24px;}
+  .devis-table{font-size:12px;}
+  .devis-table th:nth-child(3),.devis-table td:nth-child(3){display:none;}
+  .topbar-title{font-size:17px;}
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ══ SIDEBAR ══ -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sb-logo">
+      <div class="logo-text">Devis<span>Peint</span> Pro</div>
+      <div class="logo-sub">Chiffrage IA peinture</div>
+    </div>
+
+    <div class="sb-company" onclick="showView('profil')">
+      <div class="sb-company-logo" id="sb-logo-display">P</div>
+      <div class="sb-company-name" id="sb-company-name">Mon Entreprise</div>
+      <div class="sb-company-edit">✏️ Modifier le profil →</div>
+    </div>
+
+    <nav class="sb-nav">
+      <div class="nav-item active" data-view="dashboard" onclick="showView('dashboard')">
+        <span class="nav-icon">📊</span> Tableau de bord
+      </div>
+      <div class="nav-item" data-view="nouveau" onclick="showView('nouveau')">
+        <span class="nav-icon">✏️</span> Nouveau devis
+      </div>
+      <div class="nav-item" data-view="historique" onclick="showView('historique')">
+        <span class="nav-icon">📁</span> Mes devis
+        <span class="nav-badge" id="nb-devis">0</span>
+      </div>
+      <div class="nav-item" data-view="tarifs" onclick="showView('tarifs')">
+        <span class="nav-icon">💶</span> Mes tarifs
+      </div>
+      <div class="nav-item" data-view="rentabilite" onclick="showView('rentabilite')">
+        <span class="nav-icon">📈</span> Rentabilité
+      </div>
+      <div class="nav-item" data-view="fournitures" onclick="showView('fournitures')">
+        <span class="nav-icon">🛒</span> Fournitures
+      </div>
+      <div class="nav-item" data-view="fournisseurs" onclick="showView('fournisseurs')">
+        <span class="nav-icon">🏪</span> Fournisseurs
+      </div>
+      <div class="nav-item" data-view="import-export" onclick="showView('import-export')">
+        <span class="nav-icon">🔄</span> Import / Export
+      </div>
+      <div class="nav-item" data-view="profil" onclick="showView('profil')">
+        <span class="nav-icon">🏢</span> Mon entreprise
+      </div>
+    </nav>
+
+    <div class="sb-bottom">
+      <div class="sb-version">Version démo — DevisPeint Pro</div>
+    </div>
+  </aside>
+
+  <!-- ══ OVERLAY mobile ══ -->
+  <div id="overlay" onclick="closeSidebar()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:199;"></div>
+
+  <!-- ══ MAIN ══ -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="btn-hamburger" onclick="toggleSidebar()">☰</button>
+        <div class="topbar-title" id="topbar-title">Tableau de bord</div>
+      </div>
+      <div class="topbar-right">
+        <button class="btn-new" onclick="showView('nouveau')">+ Nouveau devis</button>
+      </div>
+    </div>
+
+    <div class="view-container">
+
+      <!-- ── DASHBOARD ── -->
+      <div class="view active" id="view-dashboard">
+        <div class="stats-row">
+          <div class="stat-card dark">
+            <div class="stat-label">CA ce mois</div>
+            <div class="stat-val" id="stat-ca">0 €</div>
+            <div class="stat-sub">Devis acceptés</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Devis créés</div>
+            <div class="stat-val" id="stat-total">0</div>
+            <div class="stat-sub">Ce mois-ci</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Acceptés</div>
+            <div class="stat-val" id="stat-ok">0</div>
+            <div class="stat-sub" id="stat-pct">— %</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">En attente</div>
+            <div class="stat-val" id="stat-wait">0</div>
+            <div class="stat-sub">Réponse client</div>
+          </div>
+        </div>
+        <div class="section-title">
+          Derniers devis
+          <button class="btn-new" onclick="showView('historique')" style="font-size:12px;padding:7px 13px;">Voir tout →</button>
+        </div>
+        <div class="card">
+          <table class="devis-table">
+            <thead><tr>
+              <th>N° Devis</th><th>Client</th><th>Date</th>
+              <th>Statut</th><th style="text-align:right;">Montant TTC</th>
+            </tr></thead>
+            <tbody id="dash-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ── NOUVEAU DEVIS ── -->
+      <div class="view" id="view-nouveau">
+        <div class="devis-cols">
+
+          <!-- GAUCHE: formulaire -->
+          <div>
+            <!-- Client -->
+            <div class="panel">
+              <div class="panel-hd"><div class="panel-icon">👤</div><div class="panel-title">Informations client</div></div>
+              <div class="panel-sub">Coordonnées du client pour ce devis</div>
+              <div class="grid-2">
+                <div class="field col-span-2">
+                  <label>Nom / Société *</label>
+                  <input class="inp" id="c-nom" placeholder="M. Dupont ou Résidences du Parc">
+                </div>
+                <div class="field">
+                  <label>Téléphone</label>
+                  <input class="inp" id="c-tel" type="tel" placeholder="06 00 00 00 00">
+                </div>
+                <div class="field">
+                  <label>Email</label>
+                  <input class="inp" id="c-email" type="email" placeholder="client@email.fr">
+                </div>
+                <div class="field col-span-2">
+                  <label>Adresse du chantier</label>
+                  <input class="inp" id="c-adresse" placeholder="12 rue des Lilas, 69000 Lyon">
+                </div>
+                <div class="field col-span-2">
+                  <label>Objet des travaux</label>
+                  <input class="inp" id="c-objet" placeholder="Rénovation appartement T3 — 75 m²">
+                </div>
+              </div>
+            </div>
+
+            <!-- Métré -->
+            <div class="panel">
+              <div class="panel-hd"><div class="panel-icon">📐</div><div class="panel-title">Saisie du métré</div></div>
+              <div class="panel-sub">3 façons de saisir votre métré — l'IA fait le reste</div>
+
+              <!-- TABS -->
+              <div class="input-tabs">
+                <button class="inp-tab active" onclick="switchInputTab('text',this)">✍️ Texte</button>
+                <button class="inp-tab" onclick="switchInputTab('voice',this)">🎙️ Voix</button>
+                <button class="inp-tab" onclick="switchInputTab('photo',this)">📸 Photo / Scan</button>
+              </div>
+
+              <!-- TAB TEXTE -->
+              <div class="tab-pane active" id="tab-text">
+                <textarea class="inp" id="metrage" placeholder="Exemples :
+• Séjour 5.5 x 4m h=2.60 — murs 2 couches satiné + plafond blanc
+• Chambre 1 : 3.8 x 3.2m h=2.50 — murs velours, plafond, 1 porte, 1 fenêtre bois
+• Couloir 1.2 x 6m h=2.50 — murs 2 couches mat, plinthes 15ml
+• Cuisine 3 x 3.5m — peinture vinyle satinée murs, plafond blanc"></textarea>
+                <div style="display:flex;gap:8px;margin-top:8px;">
+                  <button class="btn-clear-voice" onclick="clearMetrage()" title="Effacer" style="padding:9px 14px;background:var(--cream);border:1.5px solid var(--cream2);border-radius:9px;cursor:pointer;font-size:14px;">🗑️ Effacer</button>
+                </div>
+              </div>
+
+              <!-- TAB VOIX -->
+              <div class="tab-pane" id="tab-voice">
+                <div style="text-align:center;padding:20px 0 10px;">
+                  <div style="font-size:48px;margin-bottom:12px;" id="voice-anim">🎙️</div>
+                  <button class="btn-voice" id="voice-btn" onclick="toggleVoice()" style="width:100%;padding:16px;font-size:15px;">
+                    <span id="voice-label">Appuyer pour dicter le métré</span>
+                  </button>
+                </div>
+                <div id="voice-transcript" style="display:none;margin-top:12px;padding:12px;background:var(--cream);border-radius:9px;font-size:13px;line-height:1.7;color:var(--ink);min-height:60px;border:1.5px solid var(--cream2);"></div>
+                <div class="hint" style="margin-top:10px;">💡 Dictez naturellement : <em>"Salon cinq mètres par quatre, hauteur deux soixante, murs satiné et plafond blanc"</em></div>
+              </div>
+
+              <!-- TAB PHOTO / SCAN -->
+              <div class="tab-pane" id="tab-photo">
+                <div class="photo-drop" id="photo-drop"
+                  ondragover="event.preventDefault();this.classList.add('drag')"
+                  ondragleave="this.classList.remove('drag')"
+                  ondrop="handleDrop(event)">
+                  <input type="file" class="photo-file" id="photo-file" accept="image/*" capture="environment" onchange="handlePhotoSelect(this)">
+                  <div class="drop-icon">📸</div>
+                  <div class="drop-title">Photo, plan ou prise de notes</div>
+                  <div class="drop-sub">Glissez une image ici ou cliquez pour prendre une photo<br>JPG, PNG, PDF — l'IA lit les mesures automatiquement</div>
+                </div>
+                <div class="photo-preview-wrap" id="photo-preview-wrap" style="display:none;">
+                  <img id="photo-preview-img" src="" alt="Aperçu">
+                  <button class="photo-remove" onclick="removePhoto()" title="Supprimer">×</button>
+                </div>
+                <div class="photo-hint">
+                  📐 <strong>Fonctionne avec :</strong> photo d'un plan coté, notes manuscrites sur chantier, croquis avec dimensions, ancien devis, relevé de mesures, photo de pièce.
+                </div>
+              </div>
+
+              <div class="hint" id="main-hint" style="margin-top:10px;">💡 L'IA calcule les surfaces, déduit les ouvertures et sélectionne les bonnes prestations — vous n'avez qu'à vérifier.</div>
+
+              <button class="btn-generate" id="btn-gen" onclick="generer()">
+                ⚡ Générer le devis
+              </button>
+              <div class="loading-bar" id="loading"><span class="spin"></span> Analyse IA en cours…</div>
+            </div>
+          </div>
+
+          <!-- DROITE: aperçu -->
+          <div class="preview-wrap">
+            <div class="panel" id="preview-panel">
+              <div class="panel-hd"><div class="panel-icon">👁️</div><div class="panel-title">Aperçu du devis</div></div>
+              <div class="preview-empty" id="preview-empty">
+                <div class="big">📋</div>
+                <div>L'aperçu apparaîtra<br>après la génération</div>
+              </div>
+              <div id="preview-body" style="display:none;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── HISTORIQUE ── -->
+      <div class="view" id="view-historique">
+        <div class="hist-bar">
+          <button class="filter-chip active" onclick="filterH('all',this)">Tous</button>
+          <button class="filter-chip" onclick="filterH('En attente',this)">En attente</button>
+          <button class="filter-chip" onclick="filterH('Accepté',this)">Acceptés</button>
+          <button class="filter-chip" onclick="filterH('Refusé',this)">Refusés</button>
+          <input class="search-box" placeholder="🔍 Rechercher…" oninput="searchH(this.value)">
+        </div>
+        <div class="card">
+          <table class="devis-table">
+            <thead><tr>
+              <th>N° Devis</th><th>Client</th><th>Date</th>
+              <th>Statut</th><th style="text-align:right;">Montant TTC</th>
+            </tr></thead>
+            <tbody id="hist-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ── TARIFS ── -->
+      <div class="view" id="view-tarifs">
+        <div class="card" style="padding:22px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+            <div>
+              <div style="font-family:'Playfair Display',serif;font-size:18px;">Ma grille tarifaire</div>
+              <div style="font-size:12px;color:#999;margin-top:3px;">Modifiez vos prix — ils s'appliquent à tous les devis générés</div>
+            </div>
+            <button class="btn-save" onclick="showToast('Tarifs enregistrés ✓','ok')" style="margin-top:0;">💾 Enregistrer</button>
+          </div>
+          <div style="overflow-x:auto;">
+            <table class="tarifs-table" id="tarifs-tbl"></table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── PROFIL ── -->
+      <div class="view" id="view-profil">
+        <div class="profil-grid">
+
+          <div class="section-card">
+            <div class="sc-title">🏢 Mon entreprise</div>
+
+            <!-- Logo upload -->
+            <div class="logo-zone" id="logo-zone" onclick="document.getElementById('logo-file').click()">
+              <div class="logo-zone-placeholder" id="logo-placeholder">
+                <div class="icon">🖼️</div>
+                <div>Cliquer pour ajouter votre logo</div>
+                <div style="font-size:11px;color:#ddd;margin-top:3px;">PNG, JPG — max 2 Mo</div>
+              </div>
+              <img id="logo-preview" src="" alt="" style="display:none;max-width:100%;max-height:80px;object-fit:contain;">
+              <input type="file" id="logo-file" accept="image/*" style="display:none;" onchange="previewLogo(this)">
+            </div>
+
+            <div class="grid-2">
+              <div class="field col-span-2">
+                <label>Nom de l'entreprise *</label>
+                <input class="inp" id="e-nom" placeholder="Peinture Martin & Fils" oninput="updateSidebar()">
+              </div>
+              <div class="field">
+                <label>Dirigeant</label>
+                <input class="inp" id="e-dir" placeholder="Jean Martin">
+              </div>
+              <div class="field">
+                <label>SIRET</label>
+                <input class="inp" id="e-siret" placeholder="000 000 000 00000">
+              </div>
+              <div class="field col-span-2">
+                <label>Adresse</label>
+                <input class="inp" id="e-adresse" placeholder="12 rue des Artisans, 69000 Lyon">
+              </div>
+              <div class="field">
+                <label>Téléphone</label>
+                <input class="inp" id="e-tel" placeholder="04 00 00 00 00">
+              </div>
+              <div class="field">
+                <label>Email</label>
+                <input class="inp" id="e-email" placeholder="contact@monentreprise.fr">
+              </div>
+            </div>
+            <button class="btn-save" onclick="saveProfil()">💾 Enregistrer</button>
+          </div>
+
+          <div class="section-card">
+            <div class="sc-title">📋 Paramètres devis</div>
+            <div class="grid-2">
+              <div class="field col-span-2">
+                <label>Assurance décennale — Assureur</label>
+                <input class="inp" id="e-assureur" placeholder="AXA / Allianz…">
+              </div>
+              <div class="field col-span-2">
+                <label>N° de contrat</label>
+                <input class="inp" id="e-contrat" placeholder="N°12345678">
+              </div>
+              <div class="field">
+                <label>Taux TVA</label>
+                <select class="inp" id="e-tva">
+                  <option value="10" selected>10% — Rénovation</option>
+                  <option value="20">20% — Normal</option>
+                  <option value="5.5">5,5% — Réduit</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>Validité des devis</label>
+                <select class="inp" id="e-validite">
+                  <option value="30" selected>30 jours</option>
+                  <option value="45">45 jours</option>
+                  <option value="60">60 jours</option>
+                </select>
+              </div>
+              <div class="field col-span-2">
+                <label>Prochain n° de devis</label>
+                <input class="inp" id="e-nextnum" value="DEV-2025-001">
+              </div>
+              <div class="field col-span-2">
+                <label>Conditions de paiement</label>
+                <textarea class="inp" rows="3" id="e-conditions">30% à la commande, solde à la livraison. Pénalités de retard : 3× le taux légal.</textarea>
+              </div>
+            </div>
+            <button class="btn-save" onclick="saveProfil()">💾 Enregistrer</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── RENTABILITÉ ── -->
+      <div class="view" id="view-rentabilite"></div>
+
+      <!-- ── FOURNISSEURS ── -->
+      <div class="view" id="view-fournisseurs"></div>
+
+      <!-- ── IMPORT / EXPORT ── -->
+      <div class="view" id="view-import-export"></div>
+
+      <!-- ── FOURNITURES ── -->
+      <div class="view" id="view-fournitures">
+        <div id="fournitures-content">
+          <div style="text-align:center;padding:60px 20px;color:#bbb;">
+            <div style="font-size:48px;margin-bottom:14px;">🛒</div>
+            <div style="font-size:16px;font-weight:600;color:#999;margin-bottom:8px;">Aucun devis disponible</div>
+            <div style="font-size:13px;">Créez et enregistrez un devis pour générer le bon de commande fournitures</div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /view-container -->
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- Mobile bottom nav -->
+<nav class="mobile-nav">
+  <div class="mobile-nav-inner">
+    <button class="mob-btn active" data-view="dashboard" onclick="showView('dashboard')"><span class="icon">📊</span>Accueil</button>
+    <button class="mob-btn" data-view="nouveau" onclick="showView('nouveau')"><span class="icon">✏️</span>Nouveau</button>
+    <button class="mob-btn" data-view="historique" onclick="showView('historique')"><span class="icon">📁</span>Devis</button>
+    <button class="mob-btn" data-view="tarifs" onclick="showView('tarifs')"><span class="icon">💶</span>Tarifs</button>
+    <button class="mob-btn" data-view="rentabilite" onclick="showView('rentabilite')"><span class="icon">📈</span>Rentabilité</button>
+    <button class="mob-btn" data-view="fournitures" onclick="showView('fournitures')"><span class="icon">🛒</span>Fournitures</button>
+    <button class="mob-btn" data-view="import-export" onclick="showView('import-export')"><span class="icon">🔄</span>Import</button>
+    <button class="mob-btn" data-view="fournisseurs" onclick="showView('fournisseurs')"><span class="icon">🏪</span>Fournisseurs</button>
+    <button class="mob-btn" data-view="profil" onclick="showView('profil')"><span class="icon">🏢</span>Profil</button>
+  </div>
+</nav>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+// ── TARIFS ──────────────────────────────────────────────────────────────────
+const TARIFS = [
+  {cat:"Préparation",p:"Lessivage murs/plafonds",u:"m2",prix:8,n:"Lessivage St-Marc et rinçage"},
+  {cat:"Préparation",p:"Décapage peinture",u:"m2",prix:25,n:"Décapage thermique"},
+  {cat:"Préparation",p:"Ratissage complet murs",u:"m2",prix:35,n:"2 passes et ponçage grains 120"},
+  {cat:"Préparation",p:"Ratissage complet plafonds",u:"m2",prix:45,n:"2 passes et ponçage grains 120"},
+  {cat:"Préparation",p:"Enduit de lissage",u:"m2",prix:20,n:"2 passes, ponçage grains 120 et taconnage"},
+  {cat:"Préparation",p:"Traitement fissures",u:"m2",prix:10,n:"Ouverture, pose de bande, 2 passes de lissage"},
+  {cat:"Préparation",p:"Impression primaire",u:"m2",prix:8,n:"1 couche"},
+  {cat:"Préparation",p:"Traitement moisissures",u:"m2",prix:32,n:"2 couches"},
+  {cat:"Peinture murs",p:"Peinture murs 2 couches mat",u:"m2",prix:22,n:"Avec révision d'enduit et taconnage"},
+  {cat:"Peinture murs",p:"Peinture murs 2 couches satiné",u:"m2",prix:22,n:"Avec révision d'enduit et taconnage"},
+  {cat:"Peinture murs",p:"Peinture murs 2 couches velours",u:"m2",prix:22,n:"Avec révision d'enduit et taconnage"},
+  {cat:"Peinture murs",p:"Peinture haut de gamme",u:"m2",prix:25,n:"Avec révision d'enduit et taconnage"},
+  {cat:"Peinture murs",p:"Couleurs foncées",u:"m2",prix:25,n:"Avec révision d'enduit et taconnage"},
+  {cat:"Peinture murs",p:"Effets décoratifs",u:"m2",prix:45,n:"Chaux brossé"},
+  {cat:"Peinture plafonds",p:"Plafonds blanc mat 2 couches",u:"m2",prix:23,n:"Avec révision d'enduit et taconnage"},
+  {cat:"Peinture plafonds",p:"Plafonds anti-humidité",u:"m2",prix:32,n:"Fixation du support humi-stop en 3 passes"},
+  {cat:"Peinture plafonds",p:"Plafonds couleur",u:"m2",prix:25,n:"Avec révision d'enduit et taconnage"},
+  {cat:"Peinture plafonds",p:"Grande hauteur",u:"m2",prix:25,n:"Avec révision d'enduit et taconnage"},
+  {cat:"Boiseries",p:"Portes 2 faces",u:"unité",prix:120,n:"Préparation et 2 couches glycéro satinée"},
+  {cat:"Boiseries",p:"Plinthes",u:"ml",prix:8,n:"Préparation et 2 couches glycéro satinée"},
+  {cat:"Boiseries",p:"Fenêtres bois",u:"unité",prix:60,n:"Préparation et 2 couches glycéro satinée"},
+  {cat:"Boiseries",p:"Volets bois",u:"m2",prix:30,n:"Peinture 2 couches collet bon état"},
+  {cat:"Boiseries",p:"Escalier bois",u:"m2",prix:32,n:"Avec révision enduit et taconnage"},
+  {cat:"Métal",p:"Radiateurs",u:"m2",prix:30,n:"Préparation et 2 couches glycéro satinée"},
+  {cat:"Métal",p:"Portails",u:"m2",prix:40,n:"Préparation et 2 couches glycéro satinée"},
+  {cat:"Métal",p:"Garde-corps",u:"m2",prix:40,n:"Préparation et 2 couches glycéro satinée"},
+  {cat:"Métal",p:"Escaliers métal",u:"m2",prix:25,n:"Préparation et 2 couches glycéro satinée"},
+  {cat:"Façades",p:"Nettoyage façade",u:"m2",prix:15,n:"Nettoyage haute pression"},
+  {cat:"Façades",p:"Peinture façade",u:"m2",prix:29,n:"Préparation et 2 couches acrylique"},
+  {cat:"Façades",p:"Ravalement complet",u:"m2",prix:45,n:"Décapage, préparation et 2 couches"},
+  {cat:"Façades",p:"Hydrofuge façade",u:"m2",prix:25,n:"2 couches"},
+  {cat:"Sols",p:"Résine sol",u:"m2",prix:50,n:"2 couches"},
+  {cat:"Sols",p:"Ragréage sol",u:"m2",prix:25,n:"Fibré"},
+  {cat:"Sols",p:"PVC / lino",u:"m2",prix:25,n:"Pose uniquement"},
+  {cat:"Sols",p:"Parquet flottant",u:"m2",prix:35,n:"Pose uniquement"},
+  {cat:"Annexes",p:"Dépose papier peint",u:"m2",prix:7,n:""},
+  {cat:"Annexes",p:"Toile de verre",u:"m2",prix:25,n:"Pose de toile de verre standard"},
+];
+
+// ── STATE ────────────────────────────────────────────────────────────────────
+let devisList = [];
+let devisCounter = 1;
+let recognition = null;
+let isRecording = false;
+
+// ── VIEWS ────────────────────────────────────────────────────────────────────
+const TITLES = {dashboard:'Tableau de bord',nouveau:'Nouveau devis',historique:'Mes devis',tarifs:'Mes tarifs',rentabilite:'📈 Rentabilité chantier',fournitures:'🛒 Bon de commande fournitures','import-export':'🔄 Import / Export','fournisseurs':'🏪 Mes fournisseurs & prix d\'achat','profil':'Mon entreprise'};
+
+function showView(name) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-' + name).classList.add('active');
+  document.querySelectorAll('[data-view]').forEach(el => el.classList.toggle('active', el.dataset.view === name));
+  document.getElementById('topbar-title').textContent = TITLES[name] || name;
+  closeSidebar();
+  if (name === 'historique') renderHistorique();
+  if (name === 'dashboard')  renderDashboard();
+  if (name === 'tarifs')     renderTarifs();
+  if (name === 'rentabilite') renderRentabilite();
+  if (name === 'import-export') renderImportExport();
+  if (name === 'fournisseurs') renderFournisseurs();
+  if (name === 'fournitures') renderFournitures();
+}
+
+// ── SIDEBAR MOBILE ───────────────────────────────────────────────────────────
+function toggleSidebar() {
+  const sb = document.getElementById('sidebar');
+  const ov = document.getElementById('overlay');
+  const open = sb.classList.toggle('open');
+  ov.style.display = open ? 'block' : 'none';
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('overlay').style.display = 'none';
+}
+
+// ── DASHBOARD ────────────────────────────────────────────────────────────────
+function renderDashboard() {
+  const total  = devisList.length;
+  const ok     = devisList.filter(d => d.statut === 'Accepté');
+  const wait   = devisList.filter(d => d.statut === 'En attente');
+  const ca     = ok.reduce((s, d) => s + d.montant, 0);
+  const pct    = total ? Math.round(ok.length/total*100) : 0;
+
+  document.getElementById('stat-ca').textContent   = fEuro(ca);
+  document.getElementById('stat-total').textContent = total;
+  document.getElementById('stat-ok').textContent    = ok.length;
+  document.getElementById('stat-pct').textContent   = total ? pct + '% d\'acceptation' : '—';
+  document.getElementById('stat-wait').textContent  = wait.length;
+  document.getElementById('nb-devis').textContent   = total;
+
+  const recent = [...devisList].slice(0, 5);
+  document.getElementById('dash-tbody').innerHTML = recent.length
+    ? recent.map(d => rowHTML(d, false)).join('')
+    : '<tr><td colspan="5" style="text-align:center;padding:30px;color:#bbb;">Aucun devis encore — créez votre premier !</td></tr>';
+}
+
+function rowHTML(d, showActions) {
+  const bc = {Accepté:'b-ok','En attente':'b-wait',Refusé:'b-no'};
+  const idx = devisList.indexOf(d);
+  const actions = showActions ? `
+    <div style="display:flex;gap:6px;margin-top:5px;">
+      ${d.statut!=='Accepté'?`<button onclick="event.stopPropagation();changeStatut(${idx},'Accepté')" style="font-size:11px;padding:3px 8px;border:1px solid var(--teal);border-radius:4px;background:var(--teal-lt);color:var(--teal);cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">✓ Accepté</button>`:''}
+      ${d.statut!=='Refusé'?`<button onclick="event.stopPropagation();changeStatut(${idx},'Refusé')" style="font-size:11px;padding:3px 8px;border:1px solid #F5C0BC;border-radius:4px;background:#FDECEA;color:var(--red);cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">✗ Refusé</button>`:''}
+    </div>` : '';
+  return `<tr onclick="showRentDevis(${idx})" style="cursor:pointer;">
+    <td><div class="devis-num">${d.num}</div></td>
+    <td><div class="devis-client">${d.client}</div><div class="devis-objet">${d.objet||''}</div>${actions}</td>
+    <td style="color:#aaa;font-size:12px;">${d.date}</td>
+    <td><span class="badge ${bc[d.statut]||'b-wait'}">${d.statut}</span></td>
+    <td class="devis-amount">${fEuro(d.montant)}</td>
+  </tr>`;
+}
+
+function changeStatut(idx, statut) {
+  devisList[idx].statut = statut;
+  renderHistorique();
+  renderDashboard();
+  showToast('Statut mis à jour : ' + statut, statut==='Accepté'?'ok':'');
+}
+
+function showRentDevis(idx) {
+  const d = devisList[idx];
+  if (!d) return;
+  window._currentRentDevis = d; // mémorise le devis sélectionné
+  showView('rentabilite');
+  setTimeout(() => {
+    const card = document.getElementById('rent-result-card');
+    if (card) {
+      card.dataset.num     = d.num;
+      card.dataset.client  = d.client;
+      card.dataset.montant = d.montant;
+      card.innerHTML = rentResultHTML(d, calcRent(d.montant));
+      const lbl = document.getElementById('rent-sim-label');
+      if (lbl) lbl.innerHTML = `Simulation basée sur : <strong>${d.num}</strong> — ${d.client}`;
+      card.scrollIntoView({behavior:'smooth',block:'center'});
+    }
+  }, 100);
+}
+
+// ── HISTORIQUE ───────────────────────────────────────────────────────────────
+function renderHistorique(list) {
+  const rows = (list || devisList);
+  document.getElementById('hist-tbody').innerHTML = rows.length
+    ? rows.map(d => rowHTML(d, true)).join('')
+    : '<tr><td colspan="5" style="text-align:center;padding:40px;color:#bbb;">Aucun devis</td></tr>';
+}
+function filterH(s, btn) {
+  document.querySelectorAll('.filter-chip').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderHistorique(s === 'all' ? devisList : devisList.filter(d => d.statut === s));
+}
+function searchH(q) {
+  const t = q.toLowerCase();
+  renderHistorique(devisList.filter(d => d.client.toLowerCase().includes(t) || d.num.toLowerCase().includes(t)));
+}
+
+// ── TARIFS ───────────────────────────────────────────────────────────────────
+function renderTarifs() {
+  let html = `<thead><tr>
+    <th>Catégorie</th><th>Prestation</th><th>Unité</th>
+    <th style="text-align:right;">Prix HT (€)</th>
+    <th>Notes / Descriptif travaux <span style="font-weight:400;font-size:10px;color:rgba(255,255,255,.4);">(cliquer pour modifier)</span></th>
+  </tr></thead><tbody>`;
+  let lastCat = '';
+  TARIFS.forEach((t, i) => {
+    if (t.cat !== lastCat) {
+      html += `<tr class="tarifs-cat-row"><td colspan="5">${t.cat}</td></tr>`;
+      lastCat = t.cat;
+    }
+    html += `<tr>
+      <td></td>
+      <td style="font-weight:500;">${t.p}</td>
+      <td style="color:#aaa;">${t.u}</td>
+      <td style="text-align:right;">
+        <input class="price-input" type="number" value="${t.prix}" min="0" step="0.5"
+          onchange="TARIFS[${i}].prix=parseFloat(this.value)||0;showToast('Tarif mis à jour')">
+      </td>
+      <td>
+        <textarea class="note-input" rows="1"
+          oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px';TARIFS[${i}].n=this.value;"
+          onblur="showToast('Note enregistrée ✓','ok')"
+          placeholder="Cliquer pour ajouter une description…"
+        >${t.n}</textarea>
+      </td>
+    </tr>`;
+  });
+  html += '</tbody>';
+  document.getElementById('tarifs-tbl').innerHTML = html;
+  // Auto-resize all textareas
+  document.querySelectorAll('.note-input').forEach(ta => {
+    ta.style.height = 'auto';
+    ta.style.height = ta.scrollHeight + 'px';
+  });
+}
+
+// ── VOIX ─────────────────────────────────────────────────────────────────────
+function toggleVoice() {
+  if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+    showToast('Micro non disponible sur ce navigateur','err'); return;
+  }
+  if (isRecording) { recognition?.stop(); return; }
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  recognition = new SR();
+  recognition.lang = 'fr-FR';
+  recognition.continuous = true;
+  recognition.interimResults = true;
+  const area = document.getElementById('metrage');
+  const base = area.value;
+  recognition.onstart = () => {
+    isRecording = true;
+    document.getElementById('voice-btn').classList.add('rec');
+    document.getElementById('voice-label').textContent = '🔴 En écoute… (re-clic pour arrêter)';
+  };
+  recognition.onresult = e => {
+    let t = '';
+    for (let i = e.resultIndex; i < e.results.length; i++) t += e.results[i][0].transcript;
+    // Fill both metrage textarea AND voice-transcript
+    area.value = base + (base ? '\n' : '') + t;
+    const vt = document.getElementById('voice-transcript');
+    if (vt) { vt.textContent = area.value; vt.style.display = 'block'; }
+  };
+  recognition.onend = () => {
+    isRecording = false;
+    document.getElementById('voice-btn').classList.remove('rec');
+    document.getElementById('voice-label').textContent = '🎙️ Dicter le métré';
+  };
+  recognition.start();
+}
+function clearMetrage() { document.getElementById('metrage').value = ''; }
+
+// ── SAISIE TABS ──────────────────────────────────────────────────────────────
+let currentPhotoBase64 = null;
+let currentInputTab = 'text';
+
+function switchInputTab(tab, btn) {
+  document.querySelectorAll('.inp-tab').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-' + tab).classList.add('active');
+  currentInputTab = tab;
+}
+
+function handlePhotoSelect(input) {
+  const file = input.files[0];
+  if (!file) return;
+  loadPhotoFile(file);
+}
+
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('photo-drop').classList.remove('drag');
+  const file = e.dataTransfer.files[0];
+  if (file && file.type.startsWith('image/')) loadPhotoFile(file);
+}
+
+function loadPhotoFile(file) {
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const dataUrl = ev.target.result;
+    currentPhotoBase64 = dataUrl.split(',')[1];
+    const img = document.getElementById('photo-preview-img');
+    img.src = dataUrl;
+    document.getElementById('photo-preview-wrap').style.display = 'block';
+    document.getElementById('photo-drop').style.display = 'none';
+    showToast('Image chargée — prête pour analyse ✓', 'ok');
+  };
+  reader.readAsDataURL(file);
+}
+
+function removePhoto() {
+  currentPhotoBase64 = null;
+  document.getElementById('photo-preview-img').src = '';
+  document.getElementById('photo-preview-wrap').style.display = 'none';
+  document.getElementById('photo-drop').style.display = 'flex';
+  document.getElementById('photo-file').value = '';
+}
+
+// ── GÉNÉRATION IA ─────────────────────────────────────────────────────────────
+async function generer() {
+  // Récupère le contenu selon l'onglet actif
+  const texte = document.getElementById('metrage').value.trim();
+  const isPhoto = currentInputTab === 'photo' && currentPhotoBase64;
+  const isVoice = currentInputTab === 'voice';
+  const voiceText = document.getElementById('voice-transcript')?.textContent?.trim();
+
+  if (!isPhoto && !texte && !voiceText) {
+    showToast('Saisissez, dictez ou ajoutez une photo du métré','err'); return;
+  }
+
+  const btn = document.getElementById('btn-gen');
+  const bar = document.getElementById('loading');
+  btn.disabled = true;
+  bar.classList.add('show');
+  bar.querySelector('span').nextSibling.textContent = isPhoto
+    ? ' Analyse de la photo en cours…'
+    : ' Analyse IA en cours…';
+
+  const tarifsList = TARIFS.map(t => `- ${t.p} (${t.cat}) : ${t.prix} €/${t.u} — ${t.n}`).join('\n');
+
+  const systemPrompt = `Tu es expert en chiffrage peinture bâtiment. Analyse le métré fourni et génère un devis.
+
+TARIFS (utilise UNIQUEMENT ces prestations) :
+${tarifsList}
+
+RÈGLES DE CALCUL :
+- Murs = Périmètre × Hauteur, déduire 1.5m² par porte et 1.2m² par fenêtre
+- Plafond = Longueur × Largeur
+- Finition non précisée → "Peinture murs 2 couches satiné"
+- INTERDIT : n'ajoute JAMAIS de préparation (lessivage, enduit, ratissage, impression) si non demandée explicitement
+- N'ajoute PAS de ligne déplacement
+- Si image : lis toutes dimensions, cotes et annotations visibles
+
+STRUCTURE JSON OBLIGATOIRE — hierarchie pieces > zones > lignes :
+{
+  "interpretation": "résumé 2-3 phrases",
+  "pieces": [
+    {
+      "nom": "CHAMBRE 1",
+      "zones": [
+        {
+          "zone": "Plafond",
+          "lignes": [
+            {"p": "nom exact du tarif", "cat": "Peinture plafonds", "u": "m2", "q": 12.0, "pu": 23}
+          ]
+        },
+        {
+          "zone": "Murs",
+          "lignes": [
+            {"p": "nom exact du tarif", "cat": "Peinture murs", "u": "m2", "q": 35.5, "pu": 22}
+          ]
+        },
+        {
+          "zone": "Boiseries",
+          "lignes": [
+            {"p": "Portes 2 faces", "cat": "Boiseries", "u": "unité", "q": 1, "pu": 120}
+          ]
+        }
+      ]
+    }
+  ]
+}
+Zones possibles : Plafond, Murs, Boiseries, Sol, Façade, Autre
+JSON strict sans markdown.`;
+
+  // Construction du message selon la source
+  let messageContent;
+  if (isPhoto) {
+    messageContent = [
+      {
+        type: 'image',
+        source: { type: 'base64', media_type: 'image/jpeg', data: currentPhotoBase64 }
+      },
+      {
+        type: 'text',
+        text: systemPrompt + (texte ? '\n\nNotes complémentaires du peintre : ' + texte : '')
+      }
+    ];
+  } else {
+    const inputText = isVoice ? voiceText : texte;
+    messageContent = systemPrompt + '\n\nMÉTRÉ :\n' + inputText;
+  }
+
+  try {
+    const res = await fetch('/.netlify/functions/claude',{
+      method:'POST',
+      headers:{'Content-Type':'application/json',},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:1500,
+        messages:[{role:'user', content: messageContent}]
+      })
+    });
+    const data = await res.json();
+    let txt = data.content?.map(c=>c.text||'').join('')||'';
+    txt = txt.replace(/```json|```/g,'').trim();
+    const result = JSON.parse(txt);
+
+    // Tag source dans l'interprétation
+    if (isPhoto) result._source = 'photo';
+    else if (isVoice) result._source = 'voix';
+    else result._source = 'texte';
+
+    // _lastLignes set inside renderPreview now
+    renderPreview(result);
+    showToast('Devis généré ✓','ok');
+  } catch(e) {
+    showToast('Erreur : ' + e.message,'err');
+  } finally {
+    btn.disabled = false; bar.classList.remove('show');
+  }
+}
+
+// ── PREVIEW ───────────────────────────────────────────────────────────────────
+// ── ESTIMATION TEMPS ─────────────────────────────────────────────────────────
+function estimerTemps(lignes) {
+  // Temps de travail en heures par prestation (valeurs pro)
+  const TEMPS_MAP = {
+    "Peinture murs 2 couches mat":      {h_m2: 0.18, seches: 2},  // 2 passes + séchage x2
+    "Peinture murs 2 couches satiné":   {h_m2: 0.18, seches: 2},
+    "Peinture murs 2 couches velours":  {h_m2: 0.20, seches: 2},
+    "Peinture haut de gamme":           {h_m2: 0.22, seches: 2},
+    "Couleurs foncées":                 {h_m2: 0.25, seches: 3},  // 3 couches souvent
+    "Effets décoratifs":                {h_m2: 0.45, seches: 2},
+    "Plafonds blanc mat 2 couches":     {h_m2: 0.22, seches: 2},
+    "Plafonds anti-humidité":           {h_m2: 0.28, seches: 3},
+    "Plafonds couleur":                 {h_m2: 0.22, seches: 2},
+    "Grande hauteur":                   {h_m2: 0.35, seches: 2},
+    "Ratissage complet murs":           {h_m2: 0.30, seches: 1},  // 12h séchage enduit
+    "Ratissage complet plafonds":       {h_m2: 0.38, seches: 1},
+    "Enduit de lissage":                {h_m2: 0.25, seches: 1},
+    "Lessivage murs/plafonds":          {h_m2: 0.06, seches: 0},
+    "Décapage peinture":                {h_m2: 0.40, seches: 0},
+    "Traitement fissures":              {h_m2: 0.35, seches: 1},
+    "Impression primaire":              {h_m2: 0.08, seches: 1},
+    "Traitement moisissures":           {h_m2: 0.15, seches: 1},
+    "Portes 2 faces":                   {h_u:  1.50, seches: 2},
+    "Fenêtres bois":                    {h_u:  2.00, seches: 2},
+    "Plinthes":                         {h_ml: 0.10, seches: 1},
+    "Volets bois":                      {h_m2: 0.35, seches: 2},
+    "Escalier bois":                    {h_m2: 0.45, seches: 2},
+    "Radiateurs":                       {h_m2: 0.50, seches: 1},
+    "Peinture façade":                  {h_m2: 0.20, seches: 2},
+    "Ravalement complet":               {h_m2: 0.55, seches: 2},
+    "Résine sol":                       {h_m2: 0.30, seches: 2},
+    "Dépose papier peint":              {h_m2: 0.20, seches: 0},
+    "Toile de verre":                   {h_m2: 0.28, seches: 1},
+  };
+
+  const HEURES_JOUR = 8; // heures de travail par jour
+  const SECHAGE_H   = 12; // heures de séchage entre couches
+
+  let totalHeuresTravail = 0;
+  let totalJoursSechage  = 0;
+
+  lignes.forEach(l => {
+    if (l.cat === 'piece' || !l.q) return;
+    const t = TEMPS_MAP[l.p];
+    if (!t) return;
+    let h = 0;
+    if (t.h_m2) h = t.h_m2 * l.q;
+    else if (t.h_u) h = t.h_u * l.q;
+    else if (t.h_ml) h = t.h_ml * l.q;
+    totalHeuresTravail += h;
+    if (t.seches > 0) totalJoursSechage += (t.seches * SECHAGE_H) / 24;
+  });
+
+  const joursMainOeuvre = Math.ceil(totalHeuresTravail / HEURES_JOUR);
+  const joursCalendrier = Math.ceil(joursMainOeuvre + totalJoursSechage);
+  const joursMin = Math.max(1, joursCalendrier - 1);
+  const joursMax = joursCalendrier + 2;
+
+  // Build planning visuel
+  let planning = [];
+  for (let j = 1; j <= joursCalendrier; j++) {
+    planning.push({num: 'J' + j, type: 'work'});
+    if (j < joursCalendrier && totalJoursSechage > 0.3) {
+      planning.push({num: '⏳', type: 'dry'});
+    }
+  }
+
+  return {joursMainOeuvre, joursCalendrier, joursMin, joursMax, planning, totalHeuresTravail};
+}
+
+function alerteSousEvalue(allLignes, totalHT) {
+  // Prix marché moyen en France (€/m² HT toutes charges)
+  const MARCHE = {
+    "Peinture murs 2 couches mat":     {min:18, med:22, max:28},
+    "Peinture murs 2 couches satiné":  {min:18, med:22, max:28},
+    "Peinture murs 2 couches velours": {min:18, med:22, max:28},
+    "Peinture haut de gamme":          {min:22, med:26, max:35},
+    "Couleurs foncées":                {min:22, med:26, max:32},
+    "Plafonds blanc mat 2 couches":    {min:18, med:23, max:30},
+    "Plafonds anti-humidité":          {min:28, med:34, max:42},
+    "Ratissage complet murs":          {min:28, med:35, max:45},
+    "Enduit de lissage":               {min:16, med:20, max:28},
+    "Portes 2 faces":                  {min:90, med:120, max:160},
+    "Peinture façade":                 {min:22, med:29, max:38},
+  };
+
+  let nbSousEvalue = 0;
+  let nbOk = 0;
+  let alertes = [];
+
+  allLignes.forEach(l => {
+    if (!l.q || l.cat === 'piece') return;
+    const m = MARCHE[l.p];
+    if (!m) return;
+    const pu = l.pu || 0;
+    if (pu < m.min) {
+      nbSousEvalue++;
+      alertes.push({p: l.p, pu, min: m.min, med: m.med});
+    } else {
+      nbOk++;
+    }
+  });
+
+  // Prix moyen au m² global
+  const surfTot = allLignes.filter(l=>l.u==='m2'&&l.q).reduce((s,l)=>s+l.q,0);
+  const prixMoyenGlobal = surfTot > 0 ? totalHT / surfTot : 0;
+
+  return {nbSousEvalue, nbOk, alertes, prixMoyenGlobal, surfTot};
+}
+
+function renderEstimation(allLignes, totalHT) {
+  const temps = estimerTemps(allLignes);
+  const alerte = alerteSousEvalue(allLignes, totalHT);
+
+  // ── Temps ──
+  const planningHTML = temps.planning.slice(0,10).map(p =>
+    `<div class="temps-day ${p.type}">${p.num}</div>`
+  ).join('') + (temps.planning.length > 10 ? `<div class="temps-day">+${temps.planning.length-10}</div>` : '');
+
+  const tempsHTML = `
+    <div class="temps-box">
+      <div class="temps-icon">🗓️</div>
+      <div class="temps-body">
+        <div class="temps-title">Estimation durée chantier</div>
+        <div class="temps-detail">
+          <strong>${temps.joursMin} à ${temps.joursMax} jours calendaires</strong>
+          — dont ${temps.joursMainOeuvre} jour${temps.joursMainOeuvre>1?'s':''} de main d'œuvre
+          et ${Math.round(temps.totalJoursSechage * 24)}h de séchage cumulées
+        </div>
+        <div class="temps-planning">${planningHTML}</div>
+        <div class="temps-warning">⚠️ Estimation indicative ±2 jours — séchage 12h entre couches inclus. Variable selon conditions (température, humidité, état du support).</div>
+      </div>
+    </div>`;
+
+  // ── Alerte prix ──
+  let alerteHTML = '';
+  if (alerte.nbSousEvalue === 0 && alerte.nbOk > 0) {
+    alerteHTML = `
+      <div class="alert-box alert-ok">
+        <div class="alert-icon">✅</div>
+        <div>
+          <div class="alert-title">Tarifs dans le marché</div>
+          <div class="alert-body">Vos prix sont alignés avec le marché local. Prix moyen constaté : <strong>${alerte.prixMoyenGlobal.toFixed(0)} €/m²</strong> sur ${alerte.surfTot.toFixed(0)} m².</div>
+        </div>
+      </div>`;
+  } else if (alerte.nbSousEvalue > 0) {
+    const details = alerte.alertes.slice(0,3).map(a =>
+      `• ${a.p} : <strong>${a.pu} €</strong> vs marché <strong>${a.min}–${a.med} €</strong>`
+    ).join('<br>');
+    const severity = alerte.nbSousEvalue >= 2 ? 'danger' : 'warn';
+    alerteHTML = `
+      <div class="alert-box alert-${severity}">
+        <div class="alert-icon">${severity==='danger'?'🔴':'⚠️'}</div>
+        <div>
+          <div class="alert-title">${severity==='danger'?'Devis probablement sous-évalué':'Attention — tarifs bas'}</div>
+          <div class="alert-body">${alerte.nbSousEvalue} prestation${alerte.nbSousEvalue>1?'s':''} en dessous du marché :<br>${details}${alerte.alertes.length>3?'<br>…':''}</div>
+        </div>
+      </div>`;
+  }
+
+  return tempsHTML + alerteHTML;
+}
+
+function renderPreview(result) {
+  // Normalise le résultat en modèle pieces[] éditable
+  let pieces = [];
+  if (result.pieces && result.pieces.length) {
+    pieces = JSON.parse(JSON.stringify(result.pieces)); // deep clone
+  } else if (result.lignes && result.lignes.length) {
+    // Convertit format legacy en pieces
+    let curPiece = null;
+    result.lignes.forEach(l => {
+      if (l.cat === 'piece') {
+        curPiece = {nom: l.p, zones: [{zone: 'Prestations', lignes: []}]};
+        pieces.push(curPiece);
+      } else if (curPiece) {
+        curPiece.zones[0].lignes.push(l);
+      } else {
+        if (!pieces.length) pieces.push({nom: 'Travaux', zones: [{zone: 'Prestations', lignes: []}]});
+        pieces[0].zones[0].lignes.push(l);
+      }
+    });
+  }
+
+  // Stocke le modèle éditable globalement
+  window._devisModel = {
+    pieces,
+    interpretation: result.interpretation || '',
+    _source: result._source || 'texte'
+  };
+
+  _buildPreviewHeader(result);
+  _renderDevisTable();
+}
+
+function _buildPreviewHeader(result) {
+  const client  = document.getElementById('c-nom').value     || 'Client';
+  const tel     = document.getElementById('c-tel').value     || '';
+  const email   = document.getElementById('c-email').value   || '';
+  const adresse = document.getElementById('c-adresse').value || '';
+  const objet   = document.getElementById('c-objet').value   || 'Travaux de peinture';
+  const entNom  = document.getElementById('e-nom').value     || 'Mon Entreprise';
+  const entDir  = document.getElementById('e-dir').value     || '';
+  const entSiret= document.getElementById('e-siret')?.value  || '';
+  const entAdr  = document.getElementById('e-adresse')?.value|| '';
+  const entTel  = document.getElementById('e-tel')?.value    || '';
+  const tvaR    = parseFloat(document.getElementById('e-tva').value)/100 || 0.10;
+  const validite= document.getElementById('e-validite').value || '30';
+
+  const nextNum = document.getElementById('e-nextnum').value || 'DEV-2025-001';
+  window._devisModel.numDevis = nextNum;
+  window._devisModel.client   = client;
+  window._devisModel.tvaR     = tvaR;
+  window._devisModel.objet    = objet;
+
+  const parts = nextNum.split('-');
+  const n = parseInt(parts[parts.length-1]||'0');
+  parts[parts.length-1] = String(n+1).padStart(3,'0');
+  document.getElementById('e-nextnum').value = parts.join('-');
+
+  const dateStr = new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'});
+  const expStr  = new Date(Date.now()+parseInt(validite)*86400000).toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'});
+
+  const src = window._devisModel._source;
+  const interp = window._devisModel.interpretation;
+
+  window._devisModel._headerHTML = `
+    <div class="dv-header">
+      <div class="dv-top">
+        <div>
+          <div class="dv-company">${entNom}</div>
+          ${entDir?`<div class="dv-meta">${entDir}</div>`:''}
+          ${entAdr?`<div class="dv-meta">${entAdr}</div>`:''}
+          ${entTel?`<div class="dv-meta">${entTel}</div>`:''}
+          ${entSiret?`<div class="dv-meta">SIRET : ${entSiret}</div>`:''}
+        </div>
+        <div style="text-align:right;">
+          <div class="dv-num">${nextNum}</div>
+          <div class="dv-meta">Établi le ${dateStr}</div>
+          <div class="dv-meta">Valable jusqu'au ${expStr}</div>
+        </div>
+      </div>
+      <div class="dv-client">
+        <div class="dv-client-name">${client}</div>
+        ${adresse?`<div class="dv-client-info">${adresse}</div>`:''}
+        ${tel||email?`<div class="dv-client-info">${[tel,email].filter(Boolean).join(' · ')}</div>`:''}
+        <div class="dv-objet">Objet : ${objet}</div>
+      </div>
+    </div>
+    <div class="dv-interp">
+      ${src==='photo'?'<span class="analyse-source-badge">📸 Analysé depuis photo</span><br>':src==='voix'?'<span class="analyse-source-badge">🎙️ Analysé depuis dictée</span><br>':''}
+      ${interp}
+    </div>`;
+}
+
+function _renderDevisTable() {
+  if (!window._devisModel) return;
+  const m    = window._devisModel;
+  const tvaR = m.tvaR || 0.10;
+  let sousTotal = 0;
+  let allLignes = [];
+
+  // ── Build rows ──
+  let tableRows = '';
+  m.pieces.forEach((piece, pi) => {
+    let pieceTotal = 0;
+
+    // Piece header — éditable
+    tableRows += `<tr class="dv-piece-header">
+      <td colspan="5" style="display:flex;align-items:center;gap:6px;padding:8px 12px;">
+        📍
+        <input class="dv-edit-piece" value="${piece.nom.replace(/"/g,'&quot;')}"
+          oninput="window._devisModel.pieces[${pi}].nom=this.value"
+          title="Cliquer pour renommer la pièce">
+        <button class="btn-del-row" onclick="delPiece(${pi})" title="Supprimer cette pièce">🗑️</button>
+      </td>
+    </tr>`;
+
+    (piece.zones || []).forEach((zone, zi) => {
+      let zoneRows = '';
+
+      // Zone header — éditable
+      tableRows += `<tr class="dv-zone-header">
+        <td colspan="4">
+          — <input class="dv-edit-zone" value="${zone.zone.replace(/"/g,'&quot;')}"
+            oninput="window._devisModel.pieces[${pi}].zones[${zi}].zone=this.value"
+            title="Cliquer pour renommer la zone">
+        </td>
+        <td style="text-align:right;">
+          <button class="btn-add-zone" onclick="addZone(${pi})" title="Ajouter une zone">+ zone</button>
+        </td>
+      </tr>`;
+
+      (zone.lignes || []).forEach((l, li) => {
+        const pu   = parseFloat(l.pu) || 0;
+        const q    = parseFloat(l.q)  || 0;
+        const mont = pu * q;
+        pieceTotal += mont;
+        sousTotal  += mont;
+        allLignes.push(l);
+
+        zoneRows += `<tr class="dv-prestation">
+          <td>
+            <input class="dv-edit-cell" value="${(l.p||'').replace(/"/g,'&quot;')}"
+              oninput="window._devisModel.pieces[${pi}].zones[${zi}].lignes[${li}].p=this.value"
+              placeholder="Nom de la prestation">
+          </td>
+          <td>
+            <input class="dv-edit-cell dv-edit-num" value="${l.u||'m2'}"
+              oninput="window._devisModel.pieces[${pi}].zones[${zi}].lignes[${li}].u=this.value"
+              style="width:55px;" placeholder="m2">
+          </td>
+          <td>
+            <input class="dv-edit-cell dv-edit-num" type="number" value="${q||''}"
+              oninput="window._devisModel.pieces[${pi}].zones[${zi}].lignes[${li}].q=parseFloat(this.value)||0;_refreshTotals()"
+              placeholder="0">
+          </td>
+          <td>
+            <input class="dv-edit-cell dv-edit-pu" type="number" value="${pu||''}"
+              oninput="window._devisModel.pieces[${pi}].zones[${zi}].lignes[${li}].pu=parseFloat(this.value)||0;_refreshTotals()"
+              placeholder="0">
+          </td>
+          <td style="text-align:right;display:flex;align-items:center;gap:4px;justify-content:flex-end;">
+            <span id="mont-${pi}-${zi}-${li}" style="font-weight:700;">${fEuro(mont)}</span>
+            <button class="btn-del-row" onclick="delLigne(${pi},${zi},${li})" title="Supprimer">✕</button>
+          </td>
+        </tr>`;
+      });
+
+      tableRows += zoneRows;
+
+      // Bouton ajouter ligne
+      tableRows += `<tr><td colspan="5" style="padding:4px 10px 8px 22px;">
+        <button class="btn-add-row" onclick="addLigne(${pi},${zi})">+ Ajouter une prestation</button>
+      </td></tr>`;
+    });
+
+    // Sous-total pièce
+    tableRows += `<tr class="dv-piece-subtotal">
+      <td colspan="4">Sous-total ${piece.nom}</td>
+      <td id="sub-${pi}">${fEuro(pieceTotal)}</td>
+    </tr>`;
+  });
+
+  // Bouton ajouter pièce
+  tableRows += `<tr><td colspan="5" style="padding:6px 10px;">
+    <button class="btn-add-piece" onclick="addPiece()">＋ Ajouter une pièce / zone</button>
+  </td></tr>`;
+
+  // Forfait
+  const forfait = sousTotal * 0.10;
+  tableRows += `<tr class="dv-forfait">
+    <td><div class="dv-prest-name">Déplacement, protection et nettoyage</div>
+        <div class="dv-prest-note">Forfait 10% du total HT</div></td>
+    <td style="color:#aaa;">forfait</td><td style="color:#aaa;">10%</td>
+    <td style="text-align:right;color:#aaa;">10%</td>
+    <td style="text-align:right;" id="tot-forfait">${fEuro(forfait)}</td>
+  </tr>`;
+
+  const totalHT = sousTotal + forfait;
+  const tva     = totalHT * tvaR;
+  const ttc     = totalHT + tva;
+  const acompte = ttc * 0.30;
+
+  // Store for save
+  window._lastLignes = allLignes;
+  window._lastTTC    = ttc;
+  window._lastNum    = m.numDevis;
+  window._lastClient = m.client;
+  window._currentRentDevis = {num: m.numDevis, client: m.client, montant: ttc};
+
+  // Mise à jour silencieuse rentabilité
+  const _rentCard = document.getElementById('rent-result-card');
+  if (_rentCard) {
+    _rentCard.dataset.num     = m.numDevis;
+    _rentCard.dataset.client  = m.client;
+    _rentCard.dataset.montant = ttc;
+    _rentCard.innerHTML = rentResultHTML(window._currentRentDevis, calcRent(ttc));
+    const _simLabel = document.getElementById('rent-sim-label');
+    if (_simLabel) _simLabel.innerHTML = `Simulation basée sur : <strong>${m.numDevis}</strong> — ${m.client}`;
+  }
+
+  // Mise à jour estimation
+  const estHTML = renderEstimation(allLignes, sousTotal);
+
+  // Assemble le HTML
+  document.getElementById('preview-empty').style.display = 'none';
+  document.getElementById('preview-body').style.display  = 'block';
+  document.getElementById('preview-body').innerHTML = `
+    ${window._devisModel._headerHTML || ''}
+    ${estHTML}
+
+    <div class="edit-toolbar">
+      <span class="edit-toolbar-label">✏️ Devis modifiable — cliquez sur n'importe quelle cellule</span>
+    </div>
+
+    <div style="overflow-x:auto;">
+      <table class="dv-table" id="dv-main-table">
+        <thead><tr>
+          <th style="width:38%;">Prestation</th>
+          <th>Unité</th><th>Qté</th>
+          <th style="text-align:right;">Prix unit.</th>
+          <th style="text-align:right;">Total HT</th>
+        </tr></thead>
+        <tbody id="dv-tbody">${tableRows}</tbody>
+      </table>
+    </div>
+
+    <div class="dv-totaux" id="dv-totaux">
+      <div class="tot-row"><span>Total HT prestations</span><span id="tot-ht-prest">${fEuro(sousTotal)}</span></div>
+      <div class="tot-row"><span>Forfait déplacement (10%)</span><span id="tot-forfait2">${fEuro(forfait)}</span></div>
+      <div class="tot-row"><span>Total HT</span><span id="tot-ht">${fEuro(totalHT)}</span></div>
+      <div class="tot-row"><span>TVA (${Math.round(tvaR*100)}%)</span><span id="tot-tva">${fEuro(tva)}</span></div>
+      <div class="tot-row"><span>TOTAL TTC</span><span id="tot-ttc" style="color:var(--gold);">${fEuro(ttc)}</span></div>
+      <div class="tot-row acompte"><span>Acompte suggéré (30%)</span><span id="tot-acompte">${fEuro(acompte)}</span></div>
+    </div>
+
+    <div class="dv-actions">
+      <button class="btn-dv btn-dv-save" id="btn-save-dv"
+        onclick="saveDevis(window._lastNum,window._lastClient,window._devisModel?.objet||'Travaux',window._lastTTC,window._lastLignes)">
+        💾 Enregistrer
+      </button>
+      <button class="btn-dv btn-dv-pdf" onclick="imprimerDevis()">🖨️ PDF / Imprimer</button>
+      <button class="btn-dv" style="background:var(--gold-pale);color:var(--gold);border:1.5px solid var(--gold-lt);"
+        onclick="showView('fournitures')">🛒 Fournitures</button>
+    </div>
+  `;
+}
+
+// ── RAFRAÎCHIT SEULEMENT LES TOTAUX (sans tout rerender) ─────────────────────
+function _refreshTotals() {
+  if (!window._devisModel) return;
+  const tvaR = window._devisModel.tvaR || 0.10;
+  let sousTotal = 0;
+  let allLignes = [];
+
+  window._devisModel.pieces.forEach((piece, pi) => {
+    let pieceTotal = 0;
+    piece.zones.forEach((zone, zi) => {
+      zone.lignes.forEach((l, li) => {
+        const pu   = parseFloat(l.pu) || 0;
+        const q    = parseFloat(l.q)  || 0;
+        const mont = pu * q;
+        pieceTotal += mont;
+        sousTotal  += mont;
+        allLignes.push(l);
+        // Mise à jour cellule montant individuelle
+        const cell = document.getElementById(`mont-${pi}-${zi}-${li}`);
+        if (cell) cell.textContent = fEuro(mont);
+      });
+    });
+    const sub = document.getElementById(`sub-${pi}`);
+    if (sub) sub.textContent = fEuro(pieceTotal);
+  });
+
+  const forfait  = sousTotal * 0.10;
+  const totalHT  = sousTotal + forfait;
+  const tva      = totalHT * tvaR;
+  const ttc      = totalHT + tva;
+  const acompte  = ttc * 0.30;
+
+  const set = (id, val) => { const el=document.getElementById(id); if(el) el.textContent=fEuro(val); };
+  set('tot-ht-prest', sousTotal);
+  set('tot-forfait',  forfait);
+  set('tot-forfait2', forfait);
+  set('tot-ht',       totalHT);
+  set('tot-tva',      tva);
+  set('tot-ttc',      ttc);
+  set('tot-acompte',  acompte);
+
+  window._lastLignes = allLignes;
+  window._lastTTC    = ttc;
+}
+
+// ── ACTIONS ÉDITION ────────────────────────────────────────────────────────────
+function addLigne(pi, zi) {
+  window._devisModel.pieces[pi].zones[zi].lignes.push({p:'Nouvelle prestation',cat:'Peinture murs',u:'m2',q:0,pu:0});
+  _renderDevisTable();
+}
+function delLigne(pi, zi, li) {
+  window._devisModel.pieces[pi].zones[zi].lignes.splice(li, 1);
+  _renderDevisTable();
+}
+function addPiece() {
+  window._devisModel.pieces.push({nom:'Nouvelle pièce',zones:[{zone:'Prestations',lignes:[{p:'',cat:'Peinture murs',u:'m2',q:0,pu:0}]}]});
+  _renderDevisTable();
+}
+function delPiece(pi) {
+  if (window._devisModel.pieces.length <= 1) { showToast('Gardez au moins une pièce','err'); return; }
+  window._devisModel.pieces.splice(pi, 1);
+  _renderDevisTable();
+}
+function addZone(pi) {
+  window._devisModel.pieces[pi].zones.push({zone:'Nouvelle zone',lignes:[{p:'',cat:'Peinture murs',u:'m2',q:0,pu:0}]});
+  _renderDevisTable();
+}
+
+function saveDevis(num, client, objet, ttc, lignes) {
+  const today = new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'});
+  devisList.unshift({num, client, objet, date:today, montant:ttc, statut:'En attente', lignes: lignes||[]});
+  const btn = document.getElementById('btn-save-dv');
+  if (btn) { btn.textContent='✓ Enregistré'; btn.className='btn-dv btn-dv-saved'; }
+  renderDashboard();
+  showToast(num + ' enregistré ✓','ok');
+}
+
+// ── PROFIL ────────────────────────────────────────────────────────────────────
+function updateSidebar() {
+  const nom = document.getElementById('e-nom').value;
+  document.getElementById('sb-company-name').textContent = nom || 'Mon Entreprise';
+  document.getElementById('sb-logo-display').textContent = nom ? nom.charAt(0).toUpperCase() : 'P';
+}
+function saveProfil() { updateSidebar(); showToast('Profil enregistré ✓','ok'); }
+
+function previewLogo(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = document.getElementById('logo-preview');
+    img.src = e.target.result;
+    img.style.display = 'block';
+    document.getElementById('logo-placeholder').style.display = 'none';
+    showToast('Logo chargé ✓','ok');
+  };
+  reader.readAsDataURL(file);
+}
+
+// ── UTILS ─────────────────────────────────────────────────────────────────────
+function fEuro(n) {
+  return new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR',minimumFractionDigits:2,maximumFractionDigits:2}).format(n||0);
+}
+function showToast(msg, type='') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (type?' '+type:'');
+  clearTimeout(t._t);
+  t._t = setTimeout(()=>t.classList.remove('show'), 3000);
+}
+
+// ── RENTABILITÉ ─────────────────────────────────────────────────────────────
+const RENT_DEFAULTS = {fournitures:15, urssaf:47, deplacement:4};
+let statut_juridique = 'sarl_eurl'; // 'autoentrepreneur' | 'sarl_eurl'
+let rentParams = {...RENT_DEFAULTS};
+
+function renderRentabilite() {
+  const view = document.getElementById('view-rentabilite');
+
+  // Devis acceptés triés
+  const accepted = devisList.filter(d => d.statut === 'Accepté');
+  const caTotal  = accepted.reduce((s,d) => s+d.montant, 0);
+
+  // Ne jamais écraser le devis en cours si déjà défini par l'utilisateur
+  if (!window._currentRentDevis) {
+    window._currentRentDevis = getCurrentRentDevis();
+  }
+  const exDevis = window._currentRentDevis;
+  const calc = calcRent(exDevis.montant);
+
+  view.innerHTML = `
+    <div style="margin-bottom:16px;">
+      <div style="font-size:12px;color:#999;padding:9px 14px;background:var(--teal-lt);border-radius:8px;border-left:3px solid var(--teal);line-height:1.6;">
+        🔒 <strong>Module privé</strong> — Ces données ne figurent jamais sur le devis client. Elles sont uniquement visibles par vous.
+      </div>
+    </div>
+    <div class="rent-top">
+      <!-- Paramètres -->
+      <div>
+        <div class="rent-params">
+          <div class="rent-params-title">⚙️ Mes paramètres de coûts</div>
+          <div class="rent-params-sub">Définissez vos taux une seule fois — appliqués automatiquement à chaque devis</div>
+
+          <div class="param-row">
+            <div class="param-label">
+              <span class="param-icon">🎨</span>
+              <div>Fournitures & peinture<span class="param-sub">Matériaux, consommables, outillage</span></div>
+            </div>
+            <div class="param-input-wrap">
+              <input class="param-input" id="p-fournitures" type="number" min="0" max="60" step="0.5"
+                value="${rentParams.fournitures}" oninput="updateRentParam('fournitures',this.value)">
+              <span class="param-pct">%</span>
+            </div>
+          </div>
+
+          <div class="param-row" style="flex-direction:column;align-items:flex-start;gap:10px;">
+            <div class="param-label">
+              <span class="param-icon">🏛️</span>
+              <div>Statut juridique & URSSAF<span class="param-sub">Taux appliqué automatiquement</span></div>
+            </div>
+            <div style="display:flex;gap:8px;width:100%;flex-wrap:wrap;">
+              <button id="btn-sarl" onclick="setStatutJuridique('sarl_eurl')"
+                style="flex:1;padding:10px 12px;border-radius:9px;font-family:sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;border:2px solid var(--gold);background:var(--gold);color:var(--ink);">
+                🏢 SARL / EURL<br><span style="font-size:11px;font-weight:400;">URSSAF 47%</span>
+              </button>
+              <button id="btn-auto" onclick="setStatutJuridique('autoentrepreneur')"
+                style="flex:1;padding:10px 12px;border-radius:9px;font-family:sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;border:2px solid #D5D0C4;background:var(--cream);color:var(--ink2);">
+                🧾 Auto-entrepreneur<br><span style="font-size:11px;font-weight:400;">URSSAF 23%</span>
+              </button>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;width:100%;">
+              <span style="font-size:12px;color:#888;flex:1;">Taux URSSAF appliqué :</span>
+              <div class="param-input-wrap">
+                <input class="param-input" id="p-urssaf" type="number" min="0" max="60" step="0.5"
+                  value="${rentParams.urssaf}" oninput="updateRentParam('urssaf',this.value)">
+                <span class="param-pct">%</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="param-row">
+            <div class="param-label">
+              <span class="param-icon">🚗</span>
+              <div>Frais de déplacement<span class="param-sub">Carburant, péages, usure véhicule</span></div>
+            </div>
+            <div class="param-input-wrap">
+              <input class="param-input" id="p-deplacement" type="number" min="0" max="20" step="0.5"
+                value="${rentParams.deplacement}" oninput="updateRentParam('deplacement',this.value)">
+              <span class="param-pct">%</span>
+            </div>
+          </div>
+
+          <div class="rent-warning">
+            💡 <strong>Auto-entrepreneur :</strong> 23% de cotisations sur le CA HT. <strong>SARL/EURL :</strong> ~47% incluant cotisations TNS ou salaire gérant. Ajustez si besoin selon votre comptable.
+          </div>
+        </div>
+
+        <!-- Historique rentabilité -->
+        <div class="rent-history" style="margin-top:18px;">
+          <div class="rent-history-title">Rentabilité par chantier</div>
+          <div class="rent-history-sub">Basé sur vos devis acceptés</div>
+          ${renderRentHistory(accepted)}
+        </div>
+      </div>
+
+      <!-- Résultat simulé sur dernier devis -->
+      <div>
+        <div class="rent-result" id="rent-result-card" data-num="${exDevis.num}" data-client="${exDevis.client}" data-montant="${exDevis.montant}">
+          ${rentResultHTML(exDevis, calc)}
+        </div>
+        <div style="margin-top:12px;font-size:11px;color:#aaa;text-align:center;">
+          <span id='rent-sim-label'>Simulation basée sur : <strong>${exDevis.num}</strong> — ${exDevis.client}</span>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function calcRent(ttc) {
+  const tvaR     = parseFloat(document.getElementById('e-tva')?.value || 10) / 100;
+  const ht       = ttc / (1 + tvaR);
+  const tva              = ttc - ht;
+  const fourni           = ht * (rentParams.fournitures / 100);
+  const deplac           = ht * (rentParams.deplacement / 100);
+  const resteAvantUrssaf = ht - fourni - deplac;          // revenu disponible avant cotisations
+  const urssaf           = resteAvantUrssaf * (rentParams.urssaf / 100);
+  const benef            = resteAvantUrssaf - urssaf;
+  const margin           = ht > 0 ? (benef / ht * 100) : 0;
+  return {ttc, ht, tva, fourni, deplac, resteAvantUrssaf, urssaf, benef, margin};
+}
+
+function rentResultHTML(devis, c) {
+  const marginColor = c.margin >= 40 ? '#6FCF97' : c.margin >= 25 ? '#F5C842' : '#F97676';
+  const marginLabel = c.margin >= 40 ? '✅ Très rentable' : c.margin >= 25 ? '⚠️ Rentabilité correcte' : '🔴 Marges serrées';
+
+  // Camembert SVG — segments calculés en conic-gradient
+  const total = c.ht > 0 ? c.ht : 1;
+  const pFourni  = Math.round(c.fourni  / total * 100);
+  const pDeplac  = Math.round(c.deplac  / total * 100);
+  const pUrssaf  = Math.round(c.urssaf  / total * 100);  // urssaf already correct amount
+  const pBenef   = Math.max(0, 100 - pFourni - pDeplac - pUrssaf);
+
+  // Build conic-gradient stops
+  let a = 0;
+  const seg = (pct, color) => {
+    const s = `${color} ${a}% ${a+pct}%`;
+    a += pct;
+    return s;
+  };
+  const gradient = [
+    seg(pFourni, '#F97676'),
+    seg(pDeplac,  '#F5C842'),
+    seg(pUrssaf,  '#F0A060'),
+    seg(pBenef,   '#6FCF97'),
+  ].join(', ');
+
+  const legendItems = [
+    {label:'Fournitures', pct:pFourni,  color:'#F97676'},
+    {label:'Déplacement', pct:pDeplac,  color:'#F5C842'},
+    {label:'URSSAF',      pct:pUrssaf,  color:'#F0A060'},
+    {label:'Bénéfice net',pct:pBenef,   color:'#6FCF97'},
+  ];
+  const legendHTML = legendItems.map(l =>
+    `<div style="display:flex;align-items:center;gap:6px;font-size:11px;color:rgba(255,255,255,.7);">
+      <div style="width:10px;height:10px;border-radius:2px;background:${l.color};flex-shrink:0;"></div>
+      <span>${l.label}</span>
+      <span style="margin-left:auto;font-weight:700;color:${l.color};">${l.pct}%</span>
+    </div>`
+  ).join('');
+
+  return `
+    <div class="rent-result-title">💰 Analyse de rentabilité</div>
+
+    <!-- CAMEMBERT -->
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:18px;padding:14px;background:rgba(255,255,255,.05);border-radius:10px;">
+      <div style="
+        width:110px;height:110px;border-radius:50%;flex-shrink:0;
+        background:conic-gradient(${gradient});
+        box-shadow:0 4px 20px rgba(0,0,0,.3);
+        position:relative;
+      ">
+        <div style="
+          position:absolute;inset:22px;border-radius:50%;
+          background:var(--ink);
+          display:flex;flex-direction:column;align-items:center;justify-content:center;
+        ">
+          <div style="font-size:15px;font-weight:800;color:${marginColor};">${pBenef}%</div>
+          <div style="font-size:9px;color:rgba(255,255,255,.4);text-align:center;line-height:1.2;">bénéfice</div>
+        </div>
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column;gap:6px;">
+        ${legendHTML}
+      </div>
+    </div>
+
+    <!-- LIGNES DÉTAIL -->
+    <div class="rent-line">
+      <span class="rent-line-label">Montant TTC facturé</span>
+      <span class="rent-line-val">${fEuro(c.ttc)}</span>
+    </div>
+    <div class="rent-line">
+      <span class="rent-line-label neg">— TVA (reversée à l'État)</span>
+      <span class="rent-line-val neg">− ${fEuro(c.tva)}</span>
+    </div>
+    <div class="rent-line" style="border-bottom:2px solid rgba(255,255,255,.2);padding-bottom:12px;margin-bottom:4px;">
+      <span class="rent-line-label" style="color:rgba(255,255,255,.9);font-weight:600;">= Recette nette HT</span>
+      <span class="rent-line-val" style="font-size:16px;">${fEuro(c.ht)}</span>
+    </div>
+    <div class="rent-line">
+      <span class="rent-line-label neg">— Fournitures & peinture (${rentParams.fournitures}%)</span>
+      <span class="rent-line-val neg">− ${fEuro(c.fourni)}</span>
+    </div>
+    <div class="rent-line">
+      <span class="rent-line-label neg">— Frais de déplacement (${rentParams.deplacement}%)</span>
+      <span class="rent-line-val neg">− ${fEuro(c.deplac)}</span>
+    </div>
+    <div class="rent-line" style="border-bottom:2px solid rgba(255,255,255,.2);padding-bottom:12px;margin-bottom:4px;">
+      <span class="rent-line-label" style="color:rgba(255,255,255,.9);font-weight:600;">= Revenu disponible (avant URSSAF)</span>
+      <span class="rent-line-val" style="font-size:15px;">${fEuro(c.resteAvantUrssaf)}</span>
+    </div>
+    <div class="rent-line" style="margin-top:4px;">
+      <span class="rent-line-label neg">— Charges URSSAF (${rentParams.urssaf}% du revenu disponible)</span>
+      <span class="rent-line-val neg">− ${fEuro(c.urssaf)}</span>
+    </div>
+    <div class="rent-line rent-total-line" style="display:flex;justify-content:space-between;align-items:center;">
+      <span class="rent-total-label">Bénéfice net</span>
+      <span class="rent-total-val" style="color:${marginColor};">${fEuro(c.benef)}</span>
+    </div>
+    <div class="rent-margin-label" style="margin-top:8px;">${marginLabel} — Marge nette : <strong style="color:${marginColor};">${c.margin.toFixed(1)}%</strong></div>
+  `;
+}
+
+function renderRentHistory(accepted) {
+  if (!accepted.length) return '<div class="rent-empty">Aucun devis accepté pour le moment.<br>Acceptez des devis pour voir la rentabilité.</div>';
+  const maxBenef = Math.max(...accepted.map(d => calcRent(d.montant).benef));
+  const rows = accepted.map(d => {
+    const c = calcRent(d.montant);
+    const barW = maxBenef > 0 ? Math.round(c.benef/maxBenef*100) : 0;
+    const barColor = c.margin >= 40 ? '#6FCF97' : c.margin >= 25 ? '#F5C842' : '#F97676';
+    return `<tr>
+      <td><div style="font-weight:600;font-size:13px;">${d.client}</div><div style="font-size:11px;color:#aaa;">${d.num}</div></td>
+      <td style="font-weight:600;">${fEuro(d.montant)}</td>
+      <td style="font-weight:700;color:${barColor};">${fEuro(c.benef)}</td>
+      <td style="font-weight:700;color:${barColor};">${c.margin.toFixed(0)}%</td>
+      <td class="bar-cell"><div class="mini-bar-bg"><div class="mini-bar-fill" style="width:${barW}%;background:${barColor};"></div></div></td>
+    </tr>`;
+  }).join('');
+  return `<table class="rent-hist-table">
+    <thead><tr><th>Client</th><th>TTC</th><th>Bénéfice</th><th>Marge</th><th>Visuel</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+}
+
+function getCurrentRentDevis() {
+  // 1. Lire depuis le DOM (source de vérité absolue — survit aux re-renders)
+  const card = document.getElementById('rent-result-card');
+  if (card && card.dataset.montant) {
+    return {
+      num:     card.dataset.num     || 'Devis',
+      client:  card.dataset.client  || 'Client',
+      montant: parseFloat(card.dataset.montant)
+    };
+  }
+  // 2. Variable globale
+  if (window._currentRentDevis) return window._currentRentDevis;
+  // 3. Dernier devis généré
+  if (window._lastTTC) return {num: window._lastNum||'Devis en cours', client: window._lastClient||'Client', montant: window._lastTTC};
+  // 4. Dernier accepté
+  const accepted = devisList.filter(d => d.statut === 'Accepté');
+  return accepted[0] || {num:'DEV-exemple', client:'Exemple', montant:4840};
+}
+
+function setStatutJuridique(statut) {
+  statut_juridique = statut;
+  const taux = statut === 'autoentrepreneur' ? 23 : 47;
+  rentParams.urssaf = taux;
+  const inp = document.getElementById('p-urssaf');
+  if (inp) inp.value = taux;
+
+  // Style buttons
+  const btnAuto = document.getElementById('btn-auto');
+  const btnSarl = document.getElementById('btn-sarl');
+  if (btnAuto && btnSarl) {
+    if (statut === 'autoentrepreneur') {
+      btnAuto.style.cssText = 'flex:1;padding:10px 12px;border-radius:9px;font-family:sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;border:2px solid var(--gold);background:var(--gold);color:var(--ink);';
+      btnSarl.style.cssText = 'flex:1;padding:10px 12px;border-radius:9px;font-family:sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;border:2px solid #D5D0C4;background:var(--cream);color:var(--ink2);';
+    } else {
+      btnAuto.style.cssText = 'flex:1;padding:10px 12px;border-radius:9px;font-family:sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;border:2px solid #D5D0C4;background:var(--cream);color:var(--ink2);';
+      btnSarl.style.cssText = 'flex:1;padding:10px 12px;border-radius:9px;font-family:sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;border:2px solid var(--ink);background:var(--ink);color:var(--white);';
+    }
+  }
+
+  // Refresh result card — garde le devis actuellement affiché
+  const card = document.getElementById('rent-result-card');
+  if (card) {
+    const d = getCurrentRentDevis();
+    card.dataset.num     = d.num;
+    card.dataset.client  = d.client;
+    card.dataset.montant = d.montant;
+    card.innerHTML = rentResultHTML(d, calcRent(d.montant));
+    const lbl = document.getElementById('rent-sim-label');
+    if (lbl) lbl.innerHTML = `Simulation basée sur : <strong>${d.num}</strong> — ${d.client}`;
+  }
+  showToast(statut === 'autoentrepreneur' ? 'Auto-entrepreneur — URSSAF 23%' : 'SARL/EURL — URSSAF 47%', 'ok');
+}
+
+function updateRentParam(key, val) {
+  rentParams[key] = parseFloat(val) || 0;
+  // Re-render result if visible
+  const card = document.getElementById('rent-result-card');
+  if (!card) return;
+  const d = getCurrentRentDevis();
+  card.dataset.num     = d.num;
+  card.dataset.client  = d.client;
+  card.dataset.montant = d.montant;
+  card.innerHTML = rentResultHTML(d, calcRent(d.montant));
+}
+
+// ── FOURNITURES ──────────────────────────────────────────────────────────────
+
+// Mapping prestation → type peinture + nb couches
+const PEINTURE_MAP = {
+  "Peinture murs 2 couches mat":     {type:"Peinture acrylique mat",couches:2,rendement:10},
+  "Peinture murs 2 couches satiné":  {type:"Peinture acrylique satiné",couches:2,rendement:10},
+  "Peinture murs 2 couches velours": {type:"Peinture velours",couches:2,rendement:10},
+  "Peinture haut de gamme":          {type:"Peinture haut de gamme",couches:2,rendement:10},
+  "Couleurs foncées":                {type:"Peinture couleurs intenses",couches:2,rendement:10},
+  "Effets décoratifs":               {type:"Peinture chaux/effet",couches:2,rendement:8},
+  "Plafonds blanc mat 2 couches":    {type:"Peinture plafond blanc mat",couches:2,rendement:10},
+  "Plafonds anti-humidité":          {type:"Peinture anti-humidité",couches:3,rendement:8},
+  "Plafonds couleur":                {type:"Peinture plafond couleur",couches:2,rendement:10},
+  "Grande hauteur":                  {type:"Peinture acrylique satiné",couches:2,rendement:10},
+  "Impression primaire":             {type:"Impression primaire/fixateur",couches:1,rendement:12},
+  "Traitement moisissures":          {type:"Traitement anti-moisissures",couches:2,rendement:8},
+  "Peinture façade":                 {type:"Peinture façade acrylique",couches:2,rendement:8},
+  "Ravalement complet":              {type:"Peinture façade renforcée",couches:2,rendement:7},
+  "Hydrofuge façade":                {type:"Hydrofuge façade",couches:2,rendement:8},
+  "Résine sol":                      {type:"Résine sol époxy",couches:2,rendement:6},
+};
+
+// Conditionnements disponibles (litres)
+const CONDITIONNEMENTS = [1, 3, 5, 15];
+
+function meilleurConditionnement(litres) {
+  if (!litres || litres <= 0) return {q15:0,q5:0,q3:0,q1:1,total:1,gachis:1};
+  let best = null;
+  let bestGachis = Infinity;
+  // Essaie toutes les combinaisons pour minimiser le gâchis
+  for (let q15 = Math.floor(litres/15); q15 >= 0; q15--) {
+    const reste1 = litres - q15*15;
+    for (let q5 = Math.floor(reste1/5); q5 >= 0; q5--) {
+      const reste2 = reste1 - q5*5;
+      for (let q3 = Math.floor(reste2/3); q3 >= 0; q3--) {
+        const reste3 = reste2 - q3*3;
+        const q1 = reste3 > 0 ? Math.ceil(reste3) : 0;
+        const total = q15*15 + q5*5 + q3*3 + q1*1;
+        const gachis = total - litres;
+        if (gachis >= 0 && gachis < bestGachis) {
+          bestGachis = gachis;
+          best = {q15,q5,q3,q1,total,gachis};
+        }
+      }
+    }
+  }
+  // Fallback si aucune combinaison (litres < 1)
+  return best || {q15:0,q5:0,q3:0,q1:1,total:1,gachis:Math.max(0,1-litres)};
+}
+
+function calcFournitures(lignes) {
+  if (!lignes || !lignes.length) return [];
+
+  // Agréger les surfaces par type de peinture
+  const map = {};
+  lignes.forEach(l => {
+    if (l.cat === 'piece' || !l.q) return;
+    const info = PEINTURE_MAP[l.p];
+    if (!info) return;
+    const key = info.type;
+    if (!map[key]) map[key] = {type:info.type, couches:info.couches, rendement:info.rendement, surface:0, prestations:[]};
+    map[key].surface += l.q;
+    map[key].prestations.push(l.p);
+  });
+
+  return Object.values(map).map(item => {
+    const litresNet = (item.surface * item.couches) / item.rendement;
+    const litresAvecPerte = litresNet * 1.1; // +10% pertes
+    const cond = meilleurConditionnement(litresAvecPerte);
+    return {...item, litresNet, litresAvecPerte, cond};
+  });
+}
+
+// Accessoires fixes recommandés
+function getAccessoires(lignes) {
+  if (!lignes || !lignes.length) return [];
+  const hasMurs   = lignes.some(l => l.cat === 'Peinture murs');
+  const hasPlaf   = lignes.some(l => l.cat === 'Peinture plafonds');
+  const hasBois   = lignes.some(l => l.cat === 'Boiseries');
+  const hasFacade = lignes.some(l => l.cat === 'Façades');
+
+  // Uniquement les surfaces en m² de peinture murs/plafonds (pas boiseries, plinthes, etc.)
+  const surfPeinte = lignes
+    .filter(l => l.u === 'm2' && (l.cat === 'Peinture murs' || l.cat === 'Peinture plafonds'))
+    .reduce((s, l) => s + (l.q || 0), 0);
+
+  const acc = [];
+  if (hasMurs || hasPlaf) {
+    // Rouleau : 1 suffit jusqu'à 80m², 2 au-delà
+    acc.push({nom:'Rouleau laine de mouton 180mm', qte: surfPeinte > 80 ? 2 : 1, unite:'pce', note:`Pour ${surfPeinte.toFixed(0)} m² peints`});
+    // Manchons : 2 par rouleau + 1 de rechange
+    acc.push({nom:'Manchon de rechange', qte: surfPeinte > 80 ? 4 : 2, unite:'pce', note:'2 manchons par rouleau'});
+    // Bac : 1 suffit pour presque tous les chantiers
+    acc.push({nom:'Bac à peinture 20L', qte: 1, unite:'pce', note:'Avec grille intégrée'});
+    // Film sol : 1 rouleau de 50m² en général suffit
+    acc.push({nom:'Film de protection sol (50m²)', qte: Math.max(1, Math.ceil(surfPeinte / 80)), unite:'rouleau', note:'Protection sol et mobilier'});
+    // Ruban : compter le périmètre approx = 2 rouleaux minimum
+    acc.push({nom:'Ruban de masquage 25mm', qte: Math.max(2, Math.ceil(surfPeinte / 40)), unite:'rouleau', note:'Découpes et protections'});
+  }
+  if (hasBois) {
+    acc.push({nom:'Pinceau plat 50mm', qte: 1, unite:'pce', note:'Boiseries et finitions'});
+    acc.push({nom:'Papier abrasif P120', qte: Math.max(2, Math.ceil(surfPeinte / 20)), unite:'feuille', note:'Ponçage préparation'});
+  }
+  if (hasFacade) {
+    const surfFacade = lignes.filter(l => l.u === 'm2' && l.cat === 'Façades').reduce((s,l)=>s+(l.q||0),0);
+    acc.push({nom:'Rouleau façade 23cm', qte: surfFacade > 60 ? 2 : 1, unite:'pce', note:`Pour ${surfFacade.toFixed(0)} m² de façade`});
+  }
+  return acc;
+}
+
+let fourDevisIdx = 0;
+
+function renderFournitures() {
+  const container = document.getElementById('fournitures-content');
+  const hasDevis = devisList.length > 0;
+
+  // Try to use last saved devis or current preview
+  const allDevis = devisList.filter(d => d.lignes && d.lignes.length);
+  const hasLignes = allDevis.length > 0 || (window._lastLignes && window._lastLignes.length);
+
+  if (!hasLignes) {
+    container.innerHTML = `<div style="text-align:center;padding:60px 20px;color:#bbb;">
+      <div style="font-size:48px;margin-bottom:14px;">🛒</div>
+      <div style="font-size:16px;font-weight:600;color:#999;margin-bottom:8px;">Aucun devis disponible</div>
+      <div style="font-size:13px;">Créez et enregistrez un devis pour générer le bon de commande fournitures</div>
+    </div>`;
+    return;
+  }
+
+  // Build list of available devis sources
+  const sources = [];
+  if (window._lastLignes && window._lastLignes.length) {
+    sources.push({label:'Devis en cours', lignes: window._lastLignes, num:'En cours'});
+  }
+  allDevis.forEach(d => sources.push({label: d.num + ' — ' + d.client, lignes: d.lignes, num: d.num}));
+
+  if (fourDevisIdx >= sources.length) fourDevisIdx = 0;
+  const src = sources[fourDevisIdx];
+  const fournitures = calcFournitures(src.lignes);
+  const accessoires = getAccessoires(src.lignes);
+
+  const surfTotale = src.lignes.filter(l=>l.cat!=='piece').reduce((s,l)=>s+(l.q||0),0);
+  const litresTotal = fournitures.reduce((s,f)=>s+f.cond.total,0);
+
+  // Selector buttons
+  const selectorHTML = sources.length > 1 ? `
+    <div class="four-devis-select">
+      <span style="font-size:12px;color:#888;font-weight:600;">Devis :</span>
+      ${sources.map((s,i) => `
+        <button class="four-devis-btn ${i===fourDevisIdx?'active':''}" onclick="fourDevisIdx=${i};renderFournitures()">
+          ${s.label}
+        </button>`).join('')}
+    </div>` : '';
+
+  // Cards HTML
+  const cardsHTML = fournitures.map(f => {
+    const c = f.cond;
+    const condDetails = [
+      c.q15 ? `<div class="cond-row"><span class="cond-label">Bidons 15L</span><span class="cond-val best">${c.q15} × 15L</span></div>` : '',
+      c.q5  ? `<div class="cond-row"><span class="cond-label">Bidons 5L</span><span class="cond-val ${!c.q15&&!c.q3&&!c.q1?'best':''}">${c.q5} × 5L</span></div>` : '',
+      c.q3  ? `<div class="cond-row"><span class="cond-label">Bidons 3L</span><span class="cond-val">${c.q3} × 3L</span></div>` : '',
+      c.q1  ? `<div class="cond-row"><span class="cond-label">Pot 1L</span><span class="cond-val">${c.q1} × 1L</span></div>` : '',
+    ].filter(Boolean).join('');
+
+    return `<div class="four-card">
+      <div class="four-card-cat">Peinture</div>
+      <div class="four-card-name">${f.type}</div>
+      <div class="four-card-surface">
+        📐 ${f.surface.toFixed(1)} m² · ${f.couches} couches · rendement ${f.rendement} m²/L<br>
+        🧮 ${f.litresNet.toFixed(1)} L nets + 10% pertes = <strong>${f.litresAvecPerte.toFixed(1)} L à prévoir</strong>
+      </div>
+      <div style="margin-bottom:6px;font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.5px;">Conditionnement optimal</div>
+      ${condDetails}
+      <div style="margin-top:10px;padding:8px 10px;background:var(--gold-pale);border-radius:7px;display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-size:12px;font-weight:600;color:#7A600E;">Total à acheter</span>
+        <span style="font-size:16px;font-weight:800;color:var(--gold);">${c.total} L</span>
+      </div>
+      ${c.gachis > 0 ? `<div style="font-size:11px;color:#bbb;text-align:right;margin-top:4px;">Reste : ${c.gachis.toFixed(1)} L</div>` : ''}
+      ${(() => {
+        const linked = PRIX_ACHAT_MAP[f.type];
+        if (linked && linked.prix_unit > 0) {
+          const coutAchat = linked.prix_unit * c.total;
+          return `<div style="margin-top:8px;padding:7px 10px;background:var(--teal-lt);border-radius:7px;display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:11px;font-weight:600;color:var(--teal);">💰 Coût achat</span>
+            <span style="font-size:14px;font-weight:800;color:var(--teal);">${fEuro(coutAchat)}</span>
+          </div>`;
+        }
+        return '<div style="font-size:11px;color:#ccc;text-align:center;margin-top:6px;"><a href="#" onclick="showView(\'fournisseurs\');return false;" style="color:var(--teal);">+ Prix fournisseur</a></div>';
+      })()}
+    </div>`;
+  }).join('');
+
+  // Accessoires table
+  const accHTML = accessoires.length ? `
+    <div style="font-family:'Playfair Display',serif;font-size:18px;margin-bottom:14px;">🧰 Accessoires recommandés</div>
+    <div class="card" style="overflow:hidden;">
+      <table class="acces-table">
+        <thead><tr><th>Article</th><th>Quantité</th><th>Unité</th><th>Note</th></tr></thead>
+        <tbody>
+          ${accessoires.map(a => `<tr>
+            <td style="font-weight:600;">${a.nom}</td>
+            <td style="font-weight:700;color:var(--teal);">${a.qte}</td>
+            <td style="color:#aaa;">${a.unite}</td>
+            <td style="font-size:12px;color:#aaa;">${a.note}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>` : '';
+
+  container.innerHTML = `
+    ${selectorHTML}
+
+    <!-- Header -->
+    <div class="four-header">
+      <div class="four-header-left">
+        <div class="four-title">🛒 Bon de commande fournitures</div>
+        <div class="four-sub">${src.num} · ${surfTotale.toFixed(0)} m² de surface totale</div>
+      </div>
+      <button class="btn-print-four" onclick="window.print()">🖨️ Imprimer le bon</button>
+    </div>
+
+    <!-- Totaux rapides -->
+    ${(() => {
+      // Calcul coût achat total
+      let coutTotal = 0; let nbLinked = 0;
+      fournitures.forEach(f => {
+        const linked = PRIX_ACHAT_MAP[f.type];
+        if (linked && linked.prix_unit > 0) { coutTotal += linked.prix_unit * f.cond.total; nbLinked++; }
+      });
+      const coutHTML = coutTotal > 0 ? `<div style="width:1px;height:40px;background:var(--cream2);"></div>
+        <div class="four-total-item">
+          <div class="four-total-val" style="color:var(--teal);">${fEuro(coutTotal)}</div>
+          <div class="four-total-label">Coût achat matières</div>
+        </div>` : `<div style="width:1px;height:40px;background:var(--cream2);"></div>
+        <div class="four-total-item">
+          <div class="four-total-val" style="font-size:12px;color:#ccc;">Non renseigné</div>
+          <div class="four-total-label"><a href="#" onclick="showView('fournisseurs');return false;" style="color:var(--teal);font-size:11px;">→ Ajouter prix fournisseur</a></div>
+        </div>`;
+      return `<div class="four-total-bar">
+        <div class="four-total-item">
+          <div class="four-total-val">${surfTotale.toFixed(0)} m²</div>
+          <div class="four-total-label">Surface totale</div>
+        </div>
+        <div style="width:1px;height:40px;background:var(--cream2);"></div>
+        <div class="four-total-item">
+          <div class="four-total-val">${litresTotal} L</div>
+          <div class="four-total-label">Peinture totale</div>
+        </div>
+        <div style="width:1px;height:40px;background:var(--cream2);"></div>
+        <div class="four-total-item">
+          <div class="four-total-val">${fournitures.length}</div>
+          <div class="four-total-label">Références peinture</div>
+        </div>
+        ${coutHTML}
+        <div style="width:1px;height:40px;background:var(--cream2);"></div>
+        <div class="four-total-item">
+          <div class="four-total-val" style="font-size:13px;color:#aaa;">+10%</div>
+          <div class="four-total-label">Pertes incluses</div>
+        </div>
+      </div>`;
+    })()}
+
+    <!-- Cards peinture -->
+    <div style="font-family:'Playfair Display',serif;font-size:18px;margin-bottom:14px;">🎨 Peintures à commander</div>
+    ${fournitures.length
+      ? `<div class="four-grid">${cardsHTML}</div>`
+      : `<div style="text-align:center;padding:30px;color:#bbb;background:var(--white);border-radius:var(--radius);">Aucune peinture détectée dans ce devis</div>`
+    }
+
+    <!-- Accessoires -->
+    ${accHTML}
+
+    <div style="margin-top:16px;padding:12px 16px;background:var(--cream);border-radius:9px;font-size:12px;color:#888;line-height:1.7;">
+      ⚠️ <strong>Rappel :</strong> Quantités calculées sur la base de 1L = ${10} m² par couche + 10% de pertes. Ajustez selon le support (poreux = +20%), la marque et la couleur (foncé = +1 couche). Vérifiez toujours les données techniques du fabricant.
+    </div>
+  `;
+}
+
+// ── IMPORT / EXPORT ──────────────────────────────────────────────────────────
+
+let ieExportDevisIdx = 0;
+
+function renderImportExport() {
+  const view = document.getElementById('view-import-export');
+  const hasDevis = devisList.length > 0;
+
+  const selectHTML = hasDevis ? `
+    <div class="ie-select-row">
+      <span style="font-size:12px;color:#888;font-weight:600;align-self:center;">Exporter :</span>
+      ${devisList.map((d,i) => `
+        <button class="ie-select-btn ${i===ieExportDevisIdx?'active':''}"
+          onclick="ieExportDevisIdx=${i};renderImportExport()">
+          ${d.num} — ${d.client}
+        </button>`).join('')}
+      <button class="ie-select-btn ${ieExportDevisIdx===-1?'active':''}"
+        onclick="ieExportDevisIdx=-1;renderImportExport()">
+        Tous les devis
+      </button>
+    </div>` : `<div style="font-size:13px;color:#aaa;margin-bottom:14px;">Aucun devis enregistré — créez et sauvegardez un devis pour l'exporter.</div>`;
+
+  view.innerHTML = `
+    <div class="ie-grid">
+
+      <!-- ═══ EXPORT ═══ -->
+      <div>
+        <div style="font-family:'Playfair Display',serif;font-size:18px;margin-bottom:14px;">📤 Exporter mes devis</div>
+        <div class="ie-card">
+          <div class="ie-card-title">📊 Vers Excel / logiciel comptable</div>
+          <div class="ie-card-sub">Format CSV universel — compatible Excel, LibreOffice, Sage, Batappli, Onaya, EBP Bâtiment et tous les logiciels qui acceptent l'import CSV.</div>
+          ${selectHTML}
+          <button class="ie-btn ie-btn-csv" onclick="exportCSV()">
+            📥 Télécharger en CSV (.csv)
+          </button>
+          <div class="ie-preview" id="csv-preview"></div>
+        </div>
+
+        <div class="ie-card" style="margin-top:16px;">
+          <div class="ie-card-title">🔧 Vers logiciels techniques</div>
+          <div class="ie-card-sub">Formats structurés pour intégration dans des logiciels spécialisés bâtiment ou développement sur mesure.</div>
+          <button class="ie-btn ie-btn-json" onclick="exportJSON()">
+            { } Télécharger en JSON
+          </button>
+          <button class="ie-btn ie-btn-xml" onclick="exportXML()">
+            &lt;/&gt; Télécharger en XML
+          </button>
+        </div>
+      </div>
+
+      <!-- ═══ IMPORT ═══ -->
+      <div>
+        <div style="font-family:'Playfair Display',serif;font-size:18px;margin-bottom:14px;">📥 Importer depuis un autre logiciel</div>
+
+        <!-- Import PDF via IA -->
+        <div class="ie-card" style="margin-bottom:16px;">
+          <div class="ie-card-title">🤖 PDF ancien devis — via IA</div>
+          <div class="ie-card-sub">Uploadez un PDF ou une photo d'un ancien devis (n'importe quel logiciel). L'IA lit le document et reconstruit automatiquement le devis dans DevisPeint Pro.</div>
+          <div class="ie-drop" id="ie-drop-pdf"
+            ondragover="event.preventDefault();this.classList.add('drag')"
+            ondragleave="this.classList.remove('drag')"
+            ondrop="handleIEDrop(event,'pdf')">
+            <input type="file" class="ie-file" id="ie-file-pdf" accept="image/*,.pdf"
+              onchange="handleIEFile(this,'pdf')">
+            <div class="ie-drop-icon">📄</div>
+            <div class="ie-drop-title">Glisser un PDF ou une photo ici</div>
+            <div class="ie-drop-sub">Ancien devis, facture, relevé de chantier<br>L'IA extrait client, prestations et montants</div>
+          </div>
+          <div class="ie-result" id="ie-result-pdf"></div>
+        </div>
+
+        <!-- Import CSV/Excel -->
+        <div class="ie-card">
+          <div class="ie-card-title">📊 CSV / Excel — Import direct</div>
+          <div class="ie-card-sub">Importez un fichier CSV ou Excel exporté depuis votre logiciel actuel. Colonnes attendues : Client, Prestation, Unité, Quantité, Prix unitaire.</div>
+          <div class="ie-drop" id="ie-drop-csv"
+            ondragover="event.preventDefault();this.classList.add('drag')"
+            ondragleave="this.classList.remove('drag')"
+            ondrop="handleIEDrop(event,'csv')">
+            <input type="file" class="ie-file" id="ie-file-csv" accept=".csv,.xlsx,.xls"
+              onchange="handleIEFile(this,'csv')">
+            <div class="ie-drop-icon">📊</div>
+            <div class="ie-drop-title">Glisser un fichier CSV ou Excel ici</div>
+            <div class="ie-drop-sub">Export de Batappli, Onaya, EBP, Sage Bâtiment…<br>Colonnes auto-détectées par l'IA</div>
+          </div>
+          <div class="ie-result" id="ie-result-csv"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Note compatibilité -->
+    <div style="padding:13px 16px;background:var(--cream);border-radius:9px;font-size:12px;color:#888;line-height:1.7;">
+      💡 <strong>Logiciels compatibles export CSV :</strong> Batappli, Onaya, EBP Bâtiment, Sage Bâtiment, QuickBooks, Ciel Devis, Axonaut, Sellsy — tout logiciel proposant un export tableur.<br>
+      📄 <strong>Import PDF :</strong> fonctionne avec n'importe quel devis imprimé ou numérique, même manuscrit ou photographié sur chantier.
+    </div>
+  `;
+
+  // Aperçu CSV
+  if (hasDevis) updateCSVPreview();
+}
+
+// ── EXPORT CSV ───────────────────────────────────────────────────────────────
+function devisToExport() {
+  return ieExportDevisIdx === -1 ? devisList : [devisList[ieExportDevisIdx]].filter(Boolean);
+}
+
+function buildCSVRows(d) {
+  const rows = [];
+  const lignes = d.lignes || [];
+  let currentPiece = '';
+  lignes.forEach(l => {
+    if (l.cat === 'piece' || !l.q) { currentPiece = l.p || ''; return; }
+    rows.push([
+      d.num, d.client, d.date, d.statut,
+      currentPiece, l.p || '', l.cat || '', l.u || '',
+      (l.q||0).toFixed(2), (l.pu||0).toFixed(2),
+      ((l.q||0)*(l.pu||0)).toFixed(2)
+    ]);
+  });
+  return rows;
+}
+
+function updateCSVPreview() {
+  const preview = document.getElementById('csv-preview');
+  if (!preview) return;
+  const list = devisToExport();
+  if (!list.length) return;
+  const header = 'N° Devis;Client;Date;Statut;Pièce;Prestation;Catégorie;Unité;Quantité;Prix HT;Total HT';
+  const rows = list.flatMap(d => buildCSVRows(d));
+  preview.textContent = header + '\n' + rows.slice(0,5).map(r=>r.join(';')).join('\n') + (rows.length>5?'\n…':'');
+}
+
+function exportCSV() {
+  const list = devisToExport();
+  if (!list.length) { showToast('Aucun devis à exporter','err'); return; }
+  const header = 'N° Devis;Client;Date;Statut;Pièce;Prestation;Catégorie;Unité;Quantité;Prix HT;Total HT';
+  const rows = list.flatMap(d => buildCSVRows(d));
+  const csv = '\uFEFF' + [header, ...rows.map(r=>r.join(';'))].join('\n');
+  download(csv, `devis_export_${new Date().toISOString().slice(0,10)}.csv`, 'text/csv;charset=utf-8');
+  showToast('Export CSV téléchargé ✓','ok');
+}
+
+// ── EXPORT JSON ──────────────────────────────────────────────────────────────
+function exportJSON() {
+  const list = devisToExport();
+  if (!list.length) { showToast('Aucun devis à exporter','err'); return; }
+  const data = {
+    export_date: new Date().toISOString(),
+    logiciel: 'DevisPeint Pro',
+    version: '1.0',
+    entreprise: {
+      nom:    document.getElementById('e-nom')?.value    || '',
+      siret:  document.getElementById('e-siret')?.value  || '',
+      adresse:document.getElementById('e-adresse')?.value|| '',
+    },
+    devis: list.map(d => ({
+      numero: d.num, client: d.client, date: d.date,
+      statut: d.statut, montant_ttc: d.montant,
+      lignes: d.lignes || []
+    }))
+  };
+  download(JSON.stringify(data, null, 2),
+    `devis_export_${new Date().toISOString().slice(0,10)}.json`,
+    'application/json');
+  showToast('Export JSON téléchargé ✓','ok');
+}
+
+// ── EXPORT XML ───────────────────────────────────────────────────────────────
+function exportXML() {
+  const list = devisToExport();
+  if (!list.length) { showToast('Aucun devis à exporter','err'); return; }
+  const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const NL = '\n';
+  let xml = '<?xml version="1.0" encoding="UTF-8"?>' + NL + '<DevisPeintPro>' + NL;
+  xml += '  <ExportDate>' + new Date().toISOString() + '</ExportDate>' + NL;
+  xml += '  <Entreprise>' + NL + '    <Nom>' + esc(document.getElementById('e-nom')?.value) + '</Nom>' + NL + '    <Siret>' + esc(document.getElementById('e-siret')?.value) + '</Siret>' + NL + '  </Entreprise>' + NL;
+  xml += '  <Devis>' + NL;
+  list.forEach(d => {
+    xml += '    <Devis numero="'+esc(d.num)+'" client="'+esc(d.client)+'" date="'+esc(d.date)+'" statut="'+esc(d.statut)+'" montant_ttc="'+d.montant+'">' + NL;
+    (d.lignes||[]).forEach(l => {
+      if (!l.q) return;
+      xml += '      <Ligne prestation="'+esc(l.p)+'" cat="'+esc(l.cat)+'" unite="'+esc(l.u)+'" qte="'+(l.q||0)+'" pu="'+(l.pu||0)+'" total="'+((l.q||0)*(l.pu||0)).toFixed(2)+'"/>' + NL;
+    });
+    xml += '    </Devis>' + NL;
+  });
+  xml += '  </Devis>' + NL + '</DevisPeintPro>';
+  download(xml,
+    `devis_export_${new Date().toISOString().slice(0,10)}.xml`,
+    'application/xml');
+  showToast('Export XML téléchargé ✓','ok');
+}
+
+// ── IMPORT PDF VIA IA ────────────────────────────────────────────────────────
+function handleIEDrop(e, type) {
+  e.preventDefault();
+  document.getElementById(`ie-drop-${type}`).classList.remove('drag');
+  const file = e.dataTransfer.files[0];
+  if (file) processIEFile(file, type);
+}
+function handleIEFile(input, type) {
+  if (input.files[0]) processIEFile(input.files[0], type);
+}
+
+async function processIEFile(file, type) {
+  const result = document.getElementById(`ie-result-${type}`);
+  result.className = 'ie-result show';
+  result.innerHTML = '<span class="spin" style="display:inline-block;width:13px;height:13px;border:2.5px solid #BFDED7;border-top-color:var(--teal);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px;"></span> Analyse en cours…';
+
+  if (type === 'pdf') {
+    // Lire en base64
+    const reader = new FileReader();
+    reader.onload = async ev => {
+      const base64 = ev.target.result.split(',')[1];
+      const isImage = file.type.startsWith('image/');
+      const mediaType = isImage ? file.type : 'application/pdf';
+
+      const tarifsList = TARIFS.map(t => `- ${t.p} : ${t.prix} €/${t.u}`).join('\n');
+      const prompt = `Tu es expert en chiffrage peinture. Analyse ce document (ancien devis ou facture) et extrais toutes les informations.
+
+TARIFS DE RÉFÉRENCE :
+${tarifsList}
+
+Retourne UNIQUEMENT ce JSON strict :
+{"client":"nom client","date":"date si visible","objet":"objet des travaux","lignes":[{"p":"prestation","cat":"catégorie","u":"unité","q":12.5,"pu":22}],"montant_ttc":1500,"notes":"observations"}`;
+
+      try {
+        const res = await fetch('/.netlify/functions/claude',{
+          method:'POST',
+          headers:{'Content-Type':'application/json',},
+          body:JSON.stringify({
+            model:'claude-sonnet-4-20250514',
+            max_tokens:1500,
+            messages:[{role:'user',content:[
+              {type:'image',source:{type:'base64',media_type:mediaType,data:base64}},
+              {type:'text',text:prompt}
+            ]}]
+          })
+        });
+        const data = await res.json();
+        let txt = data.content?.map(c=>c.text||'').join('')||'';
+        txt = txt.replace(/```json|```/g,'').trim();
+        const imported = JSON.parse(txt);
+
+        // Créer le devis importé
+        const num = document.getElementById('e-nextnum')?.value || 'DEV-IMP-001';
+        const today = new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'});
+        const montant = imported.montant_ttc || imported.lignes.reduce((s,l)=>s+(l.q||0)*(l.pu||0),0)*1.1;
+        devisList.unshift({
+          num, client:imported.client||'Client importé',
+          objet:imported.objet||'Import PDF',
+          date:today, montant, statut:'En attente',
+          lignes:imported.lignes||[]
+        });
+        renderDashboard();
+        result.className = 'ie-result show';
+        result.innerHTML = `✅ Devis importé avec succès ! <strong>${imported.lignes?.length||0} prestations</strong> détectées pour <strong>${imported.client||'Client'}</strong>. <a href="#" onclick="showView('historique');return false;" style="color:var(--teal);font-weight:700;">Voir dans mes devis →</a>`;
+        showToast('Devis importé ✓','ok');
+      } catch(e) {
+        result.className='ie-result show err';
+        result.innerHTML='❌ Erreur analyse : ' + e.message;
+      }
+    };
+    reader.readAsDataURL(file);
+
+  } else if (type === 'csv') {
+    // Import CSV — lire le texte et parser
+    const reader = new FileReader();
+    reader.onload = async ev => {
+      const text = ev.target.result;
+      // Envoyer à l'IA pour parser intelligemment
+      const prompt = `Voici le contenu d'un fichier CSV exporté depuis un logiciel de devis bâtiment.
+Analyse et extrais les devis. Retourne UNIQUEMENT ce JSON strict :
+{"devis":[{"client":"nom","date":"date","objet":"objet","lignes":[{"p":"prestation","cat":"Peinture murs","u":"m2","q":12.5,"pu":22}],"montant_ttc":1500}]}
+
+CONTENU CSV :
+${text.slice(0,3000)}`;
+
+      try {
+        const res = await fetch('/.netlify/functions/claude',{
+          method:'POST',
+          headers:{'Content-Type':'application/json',},
+          body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:2000,messages:[{role:'user',content:prompt}]})
+        });
+        const data = await res.json();
+        let txt = data.content?.map(c=>c.text||'').join('')||'';
+        txt = txt.replace(/```json|```/g,'').trim();
+        const parsed = JSON.parse(txt);
+        const today = new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'});
+        let count = 0;
+        (parsed.devis||[]).forEach(d => {
+          const num = `IMP-${Date.now()}-${count++}`;
+          devisList.unshift({num, client:d.client||'Importé', objet:d.objet||'Import CSV', date:d.date||today, montant:d.montant_ttc||0, statut:'En attente', lignes:d.lignes||[]});
+        });
+        renderDashboard();
+        result.className = 'ie-result show';
+        result.innerHTML = `✅ <strong>${parsed.devis?.length||0} devis importés</strong> depuis le CSV. <a href="#" onclick="showView('historique');return false;" style="color:var(--teal);font-weight:700;">Voir dans mes devis →</a>`;
+        showToast((parsed.devis?.length||0) + ' devis importés ✓','ok');
+      } catch(e) {
+        result.className='ie-result show err';
+        result.innerHTML='❌ Erreur import : ' + e.message;
+      }
+    };
+    reader.readAsText(file, 'UTF-8');
+  }
+}
+
+// ── TÉLÉCHARGEMENT ────────────────────────────────────────────────────────────
+function download(content, filename, mimeType) {
+  const blob = new Blob([content], {type: mimeType});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+// ── FOURNISSEURS & PRIX D'ACHAT ──────────────────────────────────────────────
+
+// Structure fournisseur: {id, nom, contact, tel, email, produits:[{ref,designation,conditionnement,prix_achat,unite}]}
+let FOURNISSEURS = [
+  {
+    id:'f1', nom:'Fournisseur exemple', contact:'', tel:'', email:'',
+    produits:[
+      {ref:'PAC-BLANC-15', designation:'Peinture acrylique mat blanc', conditionnement:'Seau 15L', prix_achat:42.00, unite:'L', prix_unit_achat:2.80},
+      {ref:'PAC-SAT-15',   designation:'Peinture acrylique satiné',    conditionnement:'Seau 15L', prix_achat:48.00, unite:'L', prix_unit_achat:3.20},
+      {ref:'PAC-PLAF-15',  designation:'Peinture plafond blanc mat',   conditionnement:'Seau 15L', prix_achat:38.00, unite:'L', prix_unit_achat:2.53},
+    ]
+  }
+];
+let activeFournIdx = 0;
+
+// Catalogue produits peinture — clé = type peinture du PEINTURE_MAP
+// Sera rempli automatiquement quand l'utilisateur lie un produit
+let PRIX_ACHAT_MAP = {};
+// ex: {'Peinture acrylique mat': {fournId:'f1', prodRef:'PAC-BLANC-15', prix_unit:2.80}}
+
+function renderFournisseurs() {
+  const view = document.getElementById('view-fournisseurs');
+
+  const listHTML = FOURNISSEURS.map((f, i) => {
+    const nb = f.produits.length;
+    const withPrice = f.produits.filter(p => p.prix_achat > 0).length;
+    return `<div class="fourn-item ${i===activeFournIdx?'active':''}" onclick="activeFournIdx=${i};renderFournisseurs()">
+      <div style="font-size:20px;">${f.nom.charAt(0).toUpperCase()}</div>
+      <div>
+        <div class="fourn-item-name">${f.nom}</div>
+        <div class="fourn-item-sub">${withPrice}/${nb} produits renseignés</div>
+      </div>
+    </div>`;
+  }).join('') + `<div class="fourn-item" onclick="addFournisseur()" style="color:var(--teal);font-weight:700;justify-content:center;gap:6px;">
+    <span>＋</span><span>Nouveau fournisseur</span>
+  </div>`;
+
+  const f = FOURNISSEURS[activeFournIdx];
+  const detailHTML = f ? renderFournDetail(f, activeFournIdx) : '';
+
+  view.innerHTML = `
+    <div class="fourn-grid">
+      <!-- Liste fournisseurs -->
+      <div>
+        <div class="fourn-list">
+          <div class="fourn-list-header">
+            <span class="fourn-list-title">🏪 Mes fournisseurs</span>
+          </div>
+          ${listHTML}
+        </div>
+        <div style="margin-top:14px;padding:12px 14px;background:var(--cream);border-radius:9px;font-size:12px;color:#888;line-height:1.7;">
+          💡 Les prix d'achat sont utilisés dans le <strong>bon de commande fournitures</strong> pour calculer le coût réel matières et dans la <strong>rentabilité</strong> pour affiner les marges.
+        </div>
+      </div>
+
+      <!-- Détail fournisseur -->
+      <div id="fourn-detail-wrap">
+        ${detailHTML}
+      </div>
+    </div>
+  `;
+}
+
+function renderFournDetail(f, fi) {
+  const produitsHTML = f.produits.map((p, pi) => {
+    const margeHTML = p.prix_unit_achat > 0 ? (() => {
+      // Cherche si ce produit est lié à un type du PEINTURE_MAP
+      const linked = Object.entries(PRIX_ACHAT_MAP).find(([k,v]) => v.fournId===f.id && v.prodRef===p.ref);
+      return linked ? `<span class="marge-badge marge-ok">✓ Lié</span>` : '';
+    })() : '';
+
+    return `<tr>
+      <td>
+        <input class="dv-edit-cell" value="${(p.ref||'').replace(/"/g,'&quot;')}"
+          oninput="FOURNISSEURS[${fi}].produits[${pi}].ref=this.value"
+          placeholder="Référence" style="width:90px;font-size:11px;color:#aaa;">
+      </td>
+      <td>
+        <input class="dv-edit-cell" value="${(p.designation||'').replace(/"/g,'&quot;')}"
+          oninput="FOURNISSEURS[${fi}].produits[${pi}].designation=this.value"
+          placeholder="Désignation produit" style="min-width:160px;">
+      </td>
+      <td>
+        <input class="dv-edit-cell" value="${(p.conditionnement||'').replace(/"/g,'&quot;')}"
+          oninput="FOURNISSEURS[${fi}].produits[${pi}].conditionnement=this.value"
+          placeholder="Ex: Seau 15L" style="width:90px;">
+      </td>
+      <td>
+        <input class="prix-achat-input" type="number" value="${p.prix_achat||''}" min="0" step="0.01"
+          oninput="updatePrixAchat(${fi},${pi},this.value)"
+          placeholder="0.00">
+        <span style="font-size:10px;color:#aaa;margin-left:2px;">€ HT</span>
+      </td>
+      <td style="text-align:center;">
+        <select onchange="updateUnite(${fi},${pi},this.value)"
+          style="padding:4px 6px;border:1.5px solid #E2DDD4;border-radius:6px;font-size:12px;font-family:'Plus Jakarta Sans',sans-serif;">
+          ${['L','kg','m2','ml','pce'].map(u=>`<option ${p.unite===u?'selected':''}>${u}</option>`).join('')}
+        </select>
+      </td>
+      <td style="text-align:right;font-weight:700;color:var(--teal);">
+        ${p.prix_unit_achat>0 ? p.prix_unit_achat.toFixed(2)+'€/'+p.unite : '<span style="color:#ddd;">—</span>'}
+        ${margeHTML}
+      </td>
+      <td>
+        <select onchange="lierProduit(${fi},${pi},this.value)"
+          style="padding:4px 6px;border:1.5px solid #E2DDD4;border-radius:6px;font-size:11px;font-family:'Plus Jakarta Sans',sans-serif;max-width:130px;"
+          title="Lier ce produit à un type de peinture du bon de commande">
+          <option value="">— Lier à…</option>
+          ${Object.keys(PEINTURE_MAP).map(k => {
+            const linked = PRIX_ACHAT_MAP[PEINTURE_MAP[k].type];
+            const isLinked = linked && linked.fournId===f.id && linked.prodRef===p.ref;
+            return `<option value="${PEINTURE_MAP[k].type}" ${isLinked?'selected':''}>${k.slice(0,28)}</option>`;
+          }).join('')}
+        </select>
+      </td>
+      <td>
+        <button class="btn-del-row" onclick="delProduit(${fi},${pi})" title="Supprimer">✕</button>
+      </td>
+    </tr>`;
+  }).join('');
+
+  // Calcul coût total si devis en cours
+  const coutAchat = calcCoutAchat();
+
+  return `<div class="fourn-detail">
+    <div class="fourn-detail-header">
+      <div>
+        <input class="dv-edit-cell" value="${f.nom.replace(/"/g,'&quot;')}"
+          oninput="FOURNISSEURS[${activeFournIdx}].nom=this.value"
+          style="font-family:'Playfair Display',serif;font-size:18px;color:var(--white);background:transparent;border-color:rgba(255,255,255,.2);">
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <div class="fourn-import-zone" style="width:auto;padding:8px 14px;">
+          <input type="file" class="fourn-import-file" accept=".csv,.xlsx,.xls,.pdf"
+            onchange="importPrixFournisseur(this,${activeFournIdx})">
+          📥 Importer tarifs (CSV/PDF)
+        </div>
+        <button class="btn-add-fourn" onclick="exportPrixCSV(${activeFournIdx})">📤 Exporter CSV</button>
+        <button class="btn-add-fourn" style="background:var(--red);" onclick="delFournisseur(${activeFournIdx})">🗑️ Supprimer</button>
+      </div>
+    </div>
+
+    <!-- Infos contact -->
+    <div style="display:flex;gap:12px;padding:12px 16px;border-bottom:1px solid var(--cream2);flex-wrap:wrap;">
+      <input class="dv-edit-cell" value="${f.contact||''}" placeholder="Contact"
+        oninput="FOURNISSEURS[${activeFournIdx}].contact=this.value" style="flex:1;min-width:120px;">
+      <input class="dv-edit-cell" value="${f.tel||''}" placeholder="Téléphone"
+        oninput="FOURNISSEURS[${activeFournIdx}].tel=this.value" style="flex:1;min-width:100px;">
+      <input class="dv-edit-cell" value="${f.email||''}" placeholder="Email"
+        oninput="FOURNISSEURS[${activeFournIdx}].email=this.value" style="flex:1;min-width:150px;" type="email">
+    </div>
+
+    ${coutAchat ? `<div style="background:var(--teal-lt);border-bottom:1px solid #BFDED7;padding:10px 16px;font-size:13px;color:var(--teal);display:flex;gap:16px;align-items:center;flex-wrap:wrap;">
+      <span>💰 <strong>Coût matières devis en cours :</strong></span>
+      <span style="font-size:16px;font-weight:800;">${fEuro(coutAchat.total)}</span>
+      <span style="color:#aaa;font-size:12px;">(${coutAchat.couvert} produits avec prix d'achat sur ${coutAchat.total_prod})</span>
+    </div>` : ''}
+
+    <!-- Tableau produits -->
+    <div style="overflow-x:auto;">
+      <table class="fourn-prod-table">
+        <thead><tr>
+          <th>Réf.</th><th>Désignation produit</th><th>Conditionnement</th>
+          <th>Prix HT</th><th>Unité</th><th>Prix/unité</th><th>Lier à…</th><th></th>
+        </tr></thead>
+        <tbody>${produitsHTML}</tbody>
+      </table>
+    </div>
+
+    <div style="padding:12px 16px;">
+      <button class="btn-add-fourn" onclick="addProduit(${activeFournIdx})">＋ Ajouter un produit</button>
+    </div>
+
+    <div style="padding:10px 16px 14px;font-size:11px;color:#aaa;line-height:1.7;">
+      💡 <strong>Colonne "Lier à…" :</strong> associez chaque produit à un type de peinture pour que le bon de commande affiche automatiquement le prix d'achat et calcule le coût réel matières.
+    </div>
+  </div>`;
+}
+
+// ── CALCUL COÛT MATIÈRES ───────────────────────────────────────────────────
+function calcCoutAchat() {
+  if (!window._lastLignes || !window._lastLignes.length) return null;
+  const fournitures = calcFournitures(window._lastLignes);
+  if (!fournitures.length) return null;
+  let total = 0, couvert = 0;
+  fournitures.forEach(f => {
+    const linked = PRIX_ACHAT_MAP[f.type];
+    if (linked && linked.prix_unit > 0) {
+      total += linked.prix_unit * f.cond.total;
+      couvert++;
+    }
+  });
+  return {total, couvert, total_prod: fournitures.length};
+}
+
+// ── ACTIONS FOURNISSEURS ──────────────────────────────────────────────────────
+function updatePrixAchat(fi, pi, val) {
+  const p = FOURNISSEURS[fi].produits[pi];
+  p.prix_achat = parseFloat(val) || 0;
+  // Calcul prix/unité selon conditionnement (ex: "Seau 15L" → /15)
+  const match = p.conditionnement.match(/(\d+(?:\.\d+)?)\s*L/i);
+  const vol = match ? parseFloat(match[1]) : 1;
+  p.prix_unit_achat = vol > 0 ? p.prix_achat / vol : p.prix_achat;
+  // Mettre à jour PRIX_ACHAT_MAP si lié
+  Object.entries(PRIX_ACHAT_MAP).forEach(([k, v]) => {
+    if (v.fournId === FOURNISSEURS[fi].id && v.prodRef === p.ref) {
+      PRIX_ACHAT_MAP[k].prix_unit = p.prix_unit_achat;
+    }
+  });
+}
+
+function updateUnite(fi, pi, val) {
+  FOURNISSEURS[fi].produits[pi].unite = val;
+}
+
+function lierProduit(fi, pi, typeKey) {
+  const p = FOURNISSEURS[fi];
+  const prod = p.produits[pi];
+  if (!typeKey) {
+    // Délier
+    Object.keys(PRIX_ACHAT_MAP).forEach(k => {
+      if (PRIX_ACHAT_MAP[k].fournId===p.id && PRIX_ACHAT_MAP[k].prodRef===prod.ref) delete PRIX_ACHAT_MAP[k];
+    });
+  } else {
+    PRIX_ACHAT_MAP[typeKey] = {fournId:p.id, prodRef:prod.ref, prix_unit:prod.prix_unit_achat||0};
+  }
+  showToast('Produit lié ✓','ok');
+}
+
+function addProduit(fi) {
+  FOURNISSEURS[fi].produits.push({ref:'', designation:'Nouveau produit', conditionnement:'Seau 15L', prix_achat:0, unite:'L', prix_unit_achat:0});
+  renderFournisseurs();
+}
+
+function delProduit(fi, pi) {
+  FOURNISSEURS[fi].produits.splice(pi, 1);
+  renderFournisseurs();
+}
+
+function addFournisseur() {
+  FOURNISSEURS.push({id:'f'+Date.now(), nom:'Nouveau fournisseur', contact:'', tel:'', email:'', produits:[]});
+  activeFournIdx = FOURNISSEURS.length - 1;
+  renderFournisseurs();
+  showToast('Fournisseur ajouté','ok');
+}
+
+function delFournisseur(fi) {
+  if (FOURNISSEURS.length <= 1) { showToast('Gardez au moins un fournisseur','err'); return; }
+  FOURNISSEURS.splice(fi, 1);
+  activeFournIdx = 0;
+  renderFournisseurs();
+}
+
+// ── IMPORT CSV/PDF TARIFS FOURNISSEUR ─────────────────────────────────────────
+async function importPrixFournisseur(input, fi) {
+  const file = input.files[0];
+  if (!file) return;
+  showToast('Analyse du fichier…','ok');
+
+  const reader = new FileReader();
+  reader.onload = async ev => {
+    let content_data, messageContent;
+    if (file.type.startsWith('image/') || file.type === 'application/pdf') {
+      const base64 = ev.target.result.split(',')[1];
+      messageContent = [
+        {type:'image', source:{type:'base64', media_type:file.type==='application/pdf'?'application/pdf':file.type, data:base64}},
+        {type:'text', text:`Extrais tous les produits et prix de ce tarif fournisseur peinture.
+Retourne UNIQUEMENT ce JSON :
+{"produits":[{"ref":"REF","designation":"nom produit","conditionnement":"Seau 15L","prix_achat":42.50,"unite":"L"}]}`}
+      ];
+    } else {
+      const text = ev.target.result;
+      messageContent = `Voici un fichier CSV de tarifs fournisseur peinture. Extrais tous les produits.
+Retourne UNIQUEMENT ce JSON :
+{"produits":[{"ref":"REF","designation":"nom produit","conditionnement":"Seau 15L","prix_achat":42.50,"unite":"L"}]}
+
+CSV:
+${text.slice(0,3000)}`;
+    }
+
+    try {
+      const res = await fetch('/.netlify/functions/claude',{
+        method:'POST', headers:{'Content-Type':'application/json',},
+        body:JSON.stringify({model:'claude-sonnet-4-20250514', max_tokens:2000,
+          messages:[{role:'user', content:messageContent}]})
+      });
+      const data = await res.json();
+      let txt = data.content?.map(c=>c.text||'').join('')||'';
+      txt = txt.replace(/```json|```/g,'').trim();
+      const parsed = JSON.parse(txt);
+      parsed.produits.forEach(p => {
+        const match = (p.conditionnement||'').match(/(\d+(?:\.\d+)?)\s*L/i);
+        const vol = match ? parseFloat(match[1]) : 1;
+        p.prix_unit_achat = vol > 0 ? (p.prix_achat||0) / vol : (p.prix_achat||0);
+        p.unite = p.unite || 'L';
+        FOURNISSEURS[fi].produits.push(p);
+      });
+      renderFournisseurs();
+      showToast(parsed.produits.length + ' produits importés ✓','ok');
+    } catch(e) {
+      showToast('Erreur import : ' + e.message,'err');
+    }
+  };
+
+  if (file.type.startsWith('image/') || file.type === 'application/pdf') {
+    reader.readAsDataURL(file);
+  } else {
+    reader.readAsText(file, 'UTF-8');
+  }
+}
+
+// ── EXPORT CSV TARIFS ─────────────────────────────────────────────────────────
+function exportPrixCSV(fi) {
+  const f = FOURNISSEURS[fi];
+  const header = 'Référence;Désignation;Conditionnement;Prix HT (€);Unité;Prix/unité';
+  const rows = f.produits.map(p =>
+    [p.ref,p.designation,p.conditionnement,p.prix_achat,p.unite,(p.prix_unit_achat||0).toFixed(2)].join(';')
+  );
+  const csvContent = [header].concat(rows).join('\n');
+  download('\uFEFF' + csvContent, 'tarifs_' + f.nom.replace(/\s+/g,'_') + '.csv', 'text/csv;charset=utf-8');
+  showToast('Export CSV téléchargé ✓','ok');
+}
+
+// ── IMPRESSION PROPRE ────────────────────────────────────────────────────────
+window.addEventListener('beforeprint', function() {
+  const tbody = document.getElementById('dv-tbody');
+  if (!tbody || !window._devisModel) return;
+
+  // Sauvegarder le HTML éditable
+  window._editableHTML = tbody.innerHTML;
+
+  // Générer version lecture seule
+  const m = window._devisModel;
+  const tvaR = m.tvaR || 0.10;
+  let sousTotal = 0;
+  let printRows = '';
+
+  m.pieces.forEach(piece => {
+    let pieceTotal = 0;
+    printRows += `<tr class="dv-piece-header"><td colspan="5">${piece.nom}</td></tr>`;
+    piece.zones.forEach(zone => {
+      if (!zone.lignes.length) return;
+      printRows += `<tr class="dv-zone-header"><td colspan="5">— ${zone.zone}</td></tr>`;
+      zone.lignes.forEach(l => {
+        if (!l.p && !l.q) return;
+        const pu   = parseFloat(l.pu) || 0;
+        const q    = parseFloat(l.q)  || 0;
+        const mont = pu * q;
+        pieceTotal += mont;
+        sousTotal  += mont;
+        const ref  = TARIFS.find(x => x.p === l.p);
+        const note = ref ? ref.n : '';
+        printRows += `<tr class="dv-prestation">
+          <td><div class="dv-prest-name">${l.p||''}</div>${note?`<div class="dv-prest-note">${note}</div>`:''}</td>
+          <td style="color:#aaa;">${l.u||''}</td>
+          <td style="color:#aaa;">${q%1===0?q:q.toFixed(1)}</td>
+          <td style="text-align:right;color:#888;">${fEuro(pu)}</td>
+          <td style="text-align:right;">${fEuro(mont)}</td>
+        </tr>`;
+      });
+    });
+    printRows += `<tr class="dv-piece-subtotal"><td colspan="4">Sous-total ${piece.nom}</td><td>${fEuro(pieceTotal)}</td></tr>`;
+  });
+
+  const forfait = sousTotal * 0.10;
+  printRows += `<tr class="dv-forfait">
+    <td><div class="dv-prest-name">Déplacement, protection et nettoyage</div>
+        <div class="dv-prest-note">Forfait 10% du total HT des prestations</div></td>
+    <td style="color:#aaa;">forfait</td><td style="color:#aaa;">10%</td>
+    <td style="text-align:right;color:#aaa;">10%</td>
+    <td style="text-align:right;">${fEuro(forfait)}</td>
+  </tr>`;
+
+  tbody.innerHTML = printRows;
+});
+
+window.addEventListener('afterprint', function() {
+  const tbody = document.getElementById('dv-tbody');
+  if (tbody && window._editableHTML) {
+    tbody.innerHTML = window._editableHTML;
+    window._editableHTML = null;
+  }
+});
+
+// ── GÉNÉRATION PDF / IMPRESSION ──────────────────────────────────────────────
+function imprimerDevis() {
+  if (!window._devisModel) { showToast('Générez un devis d\'abord','err'); return; }
+  const m = window._devisModel;
+  const tvaR = m.tvaR || 0.10;
+
+  // Récupère infos entreprise et client
+  const entNom   = document.getElementById('e-nom')?.value     || 'Mon Entreprise';
+  const entDir   = document.getElementById('e-dir')?.value     || '';
+  const entSiret = document.getElementById('e-siret')?.value   || '';
+  const entAdr   = document.getElementById('e-adresse')?.value || '';
+  const entTel   = document.getElementById('e-tel')?.value     || '';
+  const client   = document.getElementById('c-nom')?.value     || 'Client';
+  const tel      = document.getElementById('c-tel')?.value     || '';
+  const email    = document.getElementById('c-email')?.value   || '';
+  const adresse  = document.getElementById('c-adresse')?.value || '';
+  const objet    = document.getElementById('c-objet')?.value   || 'Travaux de peinture';
+  const validite = document.getElementById('e-validite')?.value || '30';
+  const numDevis = m.numDevis || 'DEV-2025-001';
+  const dateStr  = new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'});
+  const expStr   = new Date(Date.now()+parseInt(validite)*86400000).toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'});
+
+  // Construire les lignes propres
+  let sousTotal = 0;
+  let lignesHTML = '';
+
+  m.pieces.forEach(piece => {
+    let pieceTotal = 0;
+    let pieceRows = '';
+
+    piece.zones.forEach(zone => {
+      let zoneRows = '';
+      zone.lignes.forEach(l => {
+        if (!l.p && !l.q) return;
+        const pu   = parseFloat(l.pu) || 0;
+        const q    = parseFloat(l.q)  || 0;
+        const mont = pu * q;
+        pieceTotal += mont;
+        sousTotal  += mont;
+        const ref  = TARIFS.find(x => x.p === l.p);
+        const note = ref ? ref.n : '';
+        zoneRows += `<tr style="border-bottom:1px solid #EEE;">
+          <td style="padding:7px 10px;">
+            <div style="font-weight:500;font-size:12px;">${l.p||''}</div>
+            ${note ? `<div style="font-size:10px;color:#aaa;margin-top:1px;">${note}</div>` : ''}
+          </td>
+          <td style="padding:7px 10px;color:#aaa;font-size:12px;">${l.u||''}</td>
+          <td style="padding:7px 10px;color:#aaa;font-size:12px;">${q%1===0?q:q.toFixed(1)}</td>
+          <td style="padding:7px 10px;text-align:right;color:#888;font-size:12px;">${l.pu ? (parseFloat(l.pu).toFixed(2)+' €') : ''}</td>
+          <td style="padding:7px 10px;text-align:right;font-weight:600;font-size:12px;">${mont > 0 ? (mont.toFixed(2)+' €') : ''}</td>
+        </tr>`;
+      });
+      if (zoneRows) {
+        pieceRows += `<tr><td colspan="5" style="padding:5px 10px 4px 18px;background:#F5F2EC;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:#888;border-left:3px solid #C8951E;">— ${zone.zone}</td></tr>`;
+        pieceRows += zoneRows;
+      }
+    });
+
+    if (pieceRows) {
+      lignesHTML += `<tr><td colspan="5" style="padding:9px 10px;background:#111820;font-family:Georgia,serif;font-size:13px;font-weight:700;color:#C8951E;letter-spacing:.3px;">📍 ${piece.nom}</td></tr>`;
+      lignesHTML += pieceRows;
+      lignesHTML += `<tr><td colspan="4" style="padding:6px 10px;text-align:right;font-size:11px;font-weight:700;color:#C8951E;background:#FDF8E8;border-top:1px solid #E8D06A;">Sous-total ${piece.nom}</td><td style="padding:6px 10px;text-align:right;font-weight:700;color:#C8951E;background:#FDF8E8;border-top:1px solid #E8D06A;">${pieceTotal.toFixed(2)} €</td></tr>`;
+    }
+  });
+
+  const forfait  = sousTotal * 0.10;
+  const totalHT  = sousTotal + forfait;
+  const tva      = totalHT * tvaR;
+  const ttc      = totalHT + tva;
+  const acompte  = ttc * 0.30;
+
+  lignesHTML += `<tr style="background:#FDF8E8;border-top:2px solid #E8D06A;">
+    <td style="padding:8px 10px;" colspan="3">
+      <div style="font-weight:500;font-size:12px;">Déplacement, protection et nettoyage</div>
+      <div style="font-size:10px;color:#aaa;">Forfait 10% du total HT des prestations</div>
+    </td>
+    <td style="padding:8px 10px;text-align:right;color:#aaa;font-size:12px;">10%</td>
+    <td style="padding:8px 10px;text-align:right;font-weight:600;font-size:12px;">${forfait.toFixed(2)} €</td>
+  </tr>`;
+
+  // HTML complet de la page PDF
+  const html = `<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Devis ${numDevis} — ${client}</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Segoe UI',Arial,sans-serif;font-size:13px;color:#1A1A2E;background:#fff;padding:20px;}
+  @media print{body{padding:0;}@page{margin:15mm 12mm;}}
+  .header{background:#111820;color:#fff;padding:20px 24px;border-radius:8px;display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;}
+  .company{font-size:18px;font-family:Georgia,serif;color:#C8951E;font-weight:700;margin-bottom:4px;}
+  .meta{font-size:11px;color:rgba(255,255,255,.5);line-height:1.6;}
+  .num{font-size:22px;font-family:Georgia,serif;color:#C8951E;text-align:right;}
+  .client-block{display:flex;gap:20px;margin-bottom:20px;padding:16px;background:#F8F6F0;border-radius:8px;}
+  .client-name{font-size:15px;font-weight:700;margin-bottom:4px;}
+  .client-info{font-size:12px;color:#888;line-height:1.6;}
+  .objet{background:#111820;color:#C8951E;padding:7px 14px;border-radius:6px;font-size:12px;font-weight:600;margin-bottom:16px;}
+  table{width:100%;border-collapse:collapse;}
+  thead tr th{background:#2A3240;color:#C8951E;padding:8px 10px;font-size:10px;text-transform:uppercase;letter-spacing:.5px;text-align:left;}
+  thead tr th:last-child{text-align:right;}
+  .totaux{margin-top:12px;display:flex;justify-content:flex-end;}
+  .totaux-inner{width:260px;border:1px solid #EEE;border-radius:8px;overflow:hidden;}
+  .tot-row{display:flex;justify-content:space-between;padding:7px 14px;border-bottom:1px solid #EEE;font-size:12px;}
+  .tot-row:last-child{border-bottom:none;}
+  .tot-row.ttc{background:#111820;color:#fff;font-size:14px;font-weight:700;}
+  .tot-row.ttc span:last-child{color:#C8951E;}
+  .tot-row.acompte{background:#FDF8E8;font-size:11px;color:#8A6500;}
+  .footer{margin-top:24px;padding-top:14px;border-top:1px solid #EEE;font-size:10px;color:#bbb;text-align:center;line-height:1.6;}
+  .btn-print{position:fixed;bottom:20px;right:20px;padding:12px 22px;background:#111820;color:#C8951E;border:none;border-radius:9px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;}
+  .btn-print:hover{background:#2A3240;}
+  @media print{.btn-print{display:none;}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="company">${entNom}</div>
+    ${entDir ? `<div class="meta">${entDir}</div>` : ''}
+    ${entAdr ? `<div class="meta">${entAdr}</div>` : ''}
+    ${entTel ? `<div class="meta">${entTel}</div>` : ''}
+    ${entSiret ? `<div class="meta">SIRET : ${entSiret}</div>` : ''}
+  </div>
+  <div>
+    <div class="num">${numDevis}</div>
+    <div class="meta" style="text-align:right;">Établi le ${dateStr}</div>
+    <div class="meta" style="text-align:right;">Valable jusqu'au ${expStr}</div>
+  </div>
+</div>
+
+<div class="client-block">
+  <div>
+    <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#aaa;margin-bottom:6px;">Client</div>
+    <div class="client-name">${client}</div>
+    ${adresse ? `<div class="client-info">${adresse}</div>` : ''}
+    ${tel ? `<div class="client-info">${tel}</div>` : ''}
+    ${email ? `<div class="client-info">${email}</div>` : ''}
+  </div>
+</div>
+
+<div class="objet">Objet : ${objet}</div>
+
+<table>
+  <thead>
+    <tr>
+      <th style="width:40%;">Prestation</th>
+      <th>Unité</th><th>Qté</th>
+      <th style="text-align:right;">Prix unit.</th>
+      <th style="text-align:right;">Total HT</th>
+    </tr>
+  </thead>
+  <tbody>${lignesHTML}</tbody>
+</table>
+
+<div class="totaux">
+  <div class="totaux-inner">
+    <div class="tot-row"><span>Total HT prestations</span><span>${sousTotal.toFixed(2)} €</span></div>
+    <div class="tot-row"><span>Déplacement (10%)</span><span>${forfait.toFixed(2)} €</span></div>
+    <div class="tot-row"><span>Total HT</span><span>${totalHT.toFixed(2)} €</span></div>
+    <div class="tot-row"><span>TVA (${Math.round(tvaR*100)}%)</span><span>${tva.toFixed(2)} €</span></div>
+    <div class="tot-row ttc"><span>TOTAL TTC</span><span>${ttc.toFixed(2)} €</span></div>
+    <div class="tot-row acompte"><span>Acompte suggéré (30%)</span><span>${acompte.toFixed(2)} €</span></div>
+  </div>
+</div>
+
+<div class="footer">
+  Devis valable ${validite} jours — ${entNom}${entSiret?' — SIRET '+entSiret:''}<br>
+  Ce document vaut acceptation des conditions générales de vente.
+</div>
+
+<button class="btn-print" onclick="window.print()">🖨️ Imprimer / Enregistrer en PDF</button>
+
+</body>
+</html>`;
+
+  // Ouvrir dans nouvelle fenêtre
+  const w = window.open('', '_blank', 'width=900,height=700');
+  if (!w) { showToast('Autorisez les popups pour ce site','err'); return; }
+  w.document.write(html);
+  w.document.close();
+  setTimeout(() => w.focus(), 300);
+}
+
+// ── SUPABASE ─────────────────────────────────────────────────────────────────
+const SUPA_URL = "https://ixvlgangapkavnjiurlt.supabase.co";
+const SUPA_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml4dmxnYW5nYXBrYXZuaml1cmx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE5MzIyMjMsImV4cCI6MjA4NzUwODIyM30.VD-Zb_uGHjdLL3AB78t_ZSs6Rz9kuJWKNhXwj-hjgho";
+const supa = supabase.createClient(SUPA_URL, SUPA_KEY);
+let currentUser = null;
+
+// ── MODAL AUTH ────────────────────────────────────────────────────────────────
+function showAuthModal(mode) {
+  mode = mode || 'login';
+  const ex = document.getElementById('auth-modal');
+  if (ex) ex.remove();
+  const m = document.createElement('div');
+  m.id = 'auth-modal';
+  m.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;';
+  m.innerHTML = '<div style="background:#fff;border-radius:16px;padding:32px;width:100%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,.3);font-family:sans-serif;">'
+    + '<div style="font-family:Georgia,serif;font-size:24px;color:#111820;margin-bottom:6px;">DevisPeint <span style="color:#C8951E;">Pro</span></div>'
+    + '<div style="font-size:13px;color:#aaa;margin-bottom:24px;">Chiffrage IA peinture</div>'
+    + '<div style="display:flex;gap:8px;margin-bottom:20px;">'
+    +   '<button id="tab-login" onclick="switchAuthTab(\'login\')" style="flex:1;padding:9px;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;border:2px solid #111820;background:#111820;color:#fff;">Connexion</button>'
+    +   '<button id="tab-register" onclick="switchAuthTab(\'register\')" style="flex:1;padding:9px;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;border:2px solid #E2DDD4;background:#fff;color:#888;">Créer un compte</button>'
+    + '</div>'
+    + '<div id="auth-err" style="display:none;background:#FDECEA;border-radius:8px;padding:10px 14px;font-size:13px;color:#C0392B;margin-bottom:14px;"></div>'
+    + '<input id="auth-email" type="email" placeholder="Email" style="width:100%;padding:11px 14px;border:1.5px solid #E2DDD4;border-radius:9px;font-size:14px;margin-bottom:10px;box-sizing:border-box;font-family:sans-serif;">'
+    + '<input id="auth-pass" type="password" placeholder="Mot de passe" style="width:100%;padding:11px 14px;border:1.5px solid #E2DDD4;border-radius:9px;font-size:14px;margin-bottom:16px;box-sizing:border-box;font-family:sans-serif;">'
+    + '<button id="auth-submit" onclick="doAuth()" style="width:100%;padding:13px;background:#C8951E;color:#fff;border:none;border-radius:9px;font-size:15px;font-weight:700;cursor:pointer;font-family:sans-serif;">Se connecter</button>'
+    + '<div id="auth-forgot" style="text-align:center;margin-top:12px;font-size:12px;color:#aaa;">Mot de passe oublié ? <a href="#" onclick="doReset();return false;" style="color:#C8951E;">Réinitialiser</a></div>'
+    + '</div>';
+  document.body.appendChild(m);
+  if (mode === 'register') switchAuthTab('register');
+  setTimeout(() => document.getElementById('auth-email').focus(), 100);
+}
+
+function switchAuthTab(tab) {
+  const isLogin = tab === 'login';
+  document.getElementById('tab-login').style.cssText    = 'flex:1;padding:9px;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;border:2px solid '+(isLogin?'#111820;background:#111820;color:#fff;':'#E2DDD4;background:#fff;color:#888;');
+  document.getElementById('tab-register').style.cssText = 'flex:1;padding:9px;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;border:2px solid '+(!isLogin?'#111820;background:#111820;color:#fff;':'#E2DDD4;background:#fff;color:#888;');
+  document.getElementById('auth-submit').textContent = isLogin ? 'Se connecter' : 'Créer mon compte';
+  document.getElementById('auth-forgot').style.display = isLogin ? 'block' : 'none';
+  document.getElementById('auth-submit').dataset.mode = tab;
+}
+
+async function doAuth() {
+  const email = document.getElementById('auth-email').value.trim();
+  const pass  = document.getElementById('auth-pass').value;
+  const mode  = document.getElementById('auth-submit').dataset.mode || 'login';
+  const err   = document.getElementById('auth-err');
+  const btn   = document.getElementById('auth-submit');
+  if (!email || !pass) { err.style.display='block'; err.textContent='Email et mot de passe requis.'; return; }
+  btn.textContent = 'Chargement…'; btn.disabled = true;
+  const fn = mode === 'register' ? supa.auth.signUp({email,password:pass}) : supa.auth.signInWithPassword({email,password:pass});
+  const {data, error} = await fn;
+  btn.disabled = false;
+  if (error) { err.style.display='block'; err.textContent=error.message; btn.textContent=mode==='register'?'Créer mon compte':'Se connecter'; return; }
+  if (mode==='register' && !data.session) { err.style.display='block'; err.style.background='#E8F8F0'; err.style.color='#2D8659'; err.textContent='Compte créé ! Vérifiez votre email pour confirmer.'; btn.textContent='Créer mon compte'; return; }
+  onLogin(data.user);
+}
+
+async function doReset() {
+  const email = document.getElementById('auth-email').value.trim();
+  if (!email) { document.getElementById('auth-err').style.display='block'; document.getElementById('auth-err').textContent='Entrez votre email.'; return; }
+  await supa.auth.resetPasswordForEmail(email);
+  const err = document.getElementById('auth-err');
+  err.style.display='block'; err.style.background='#E8F8F0'; err.style.color='#2D8659';
+  err.textContent='Email de réinitialisation envoyé !';
+}
+
+// ── SESSION ────────────────────────────────────────────────────────────────────
+async function onLogin(user) {
+  currentUser = user;
+  const modal = document.getElementById('auth-modal');
+  if (modal) modal.remove();
+  // Afficher user dans topbar
+  const tb = document.getElementById('topbar-user');
+  if (tb) tb.innerHTML = '<span style="font-size:12px;color:#aaa;">'+user.email+'</span> <button onclick="doLogout()" style="padding:4px 10px;background:var(--cream);border:1.5px solid #D5D0C4;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;color:var(--ink2);">Déconnexion</button>';
+  await chargerDonnees();
+  renderDashboard();
+  setTimeout(appliquerProfil, 100);
+}
+
+async function doLogout() {
+  await supa.auth.signOut();
+  currentUser = null;
+  devisList = []; FOURNISSEURS = [{id:'f1',nom:'Fournisseur exemple',contact:'',tel:'',email:'',produits:[]}];
+  rentParams = {fournitures:15,urssaf:47,deplacement:4};
+  showAuthModal('login');
+}
+
+// ── CHARGEMENT DONNÉES ────────────────────────────────────────────────────────
+async function chargerDonnees() {
+  if (!currentUser) return;
+  const uid = currentUser.id;
+
+  // Devis
+  const {data:dvs} = await supa.from('devis').select('*').eq('user_id',uid).order('created_at',{ascending:false});
+  if (dvs) devisList = dvs.map(d => ({num:d.num,client:d.client,objet:d.objet,date:d.date,montant:d.montant,statut:d.statut,lignes:d.lignes||[],_id:d.id}));
+
+  // Fournisseurs
+  const {data:fourns} = await supa.from('fournisseurs').select('*').eq('user_id',uid).order('updated_at',{ascending:false}).limit(1);
+  if (fourns && fourns.length) { FOURNISSEURS = fourns[0].data.fournisseurs || FOURNISSEURS; PRIX_ACHAT_MAP = fourns[0].data.prix_map || {}; }
+
+  // Rentabilité
+  const {data:rent} = await supa.from('rent_params').select('*').eq('user_id',uid).limit(1);
+  if (rent && rent.length) { Object.assign(rentParams, rent[0].params); statut_juridique = rent[0].statut_juridique || 'sarl_eurl'; }
+
+  // Tarifs
+  const {data:tarifs} = await supa.from('tarifs_custom').select('*').eq('user_id',uid);
+  if (tarifs) tarifs.forEach(tc => { const t = TARIFS.find(x => x.p===tc.prestation); if(t){t.prix=tc.prix;t.n=tc.note||'';} });
+
+  // Profil
+  const {data:profil} = await supa.from('profils').select('*').eq('id',uid).limit(1);
+  if (profil && profil.length) {
+    window._savedProfil = {
+      'e-nom':profil[0].nom||'','e-dir':profil[0].directeur||'','e-siret':profil[0].siret||'',
+      'e-adresse':profil[0].adresse||'','e-tel':profil[0].tel||'',
+      'e-tva':profil[0].tva||'0.10','e-validite':profil[0].validite||'30','e-nextnum':profil[0].nextnum||'DEV-2025-001'
+    };
+  }
+}
+
+// ── SAUVEGARDE CLOUD ──────────────────────────────────────────────────────────
+async function sauvegarder() {
+  if (!currentUser) { sauvegarderLocal(); return; }
+  const uid = currentUser.id;
+
+  // Devis — upsert chacun
+  for (const d of devisList) {
+    if (d._id) {
+      await supa.from('devis').update({num:d.num,client:d.client,objet:d.objet,date:d.date,montant:d.montant,statut:d.statut,lignes:d.lignes}).eq('id',d._id);
+    } else {
+      const {data} = await supa.from('devis').insert({user_id:uid,num:d.num,client:d.client,objet:d.objet,date:d.date,montant:d.montant,statut:d.statut,lignes:d.lignes}).select();
+      if (data && data[0]) d._id = data[0].id;
+    }
+  }
+
+  // Fournisseurs (1 row par user)
+  await supa.from('fournisseurs').upsert({user_id:uid,data:{fournisseurs:FOURNISSEURS,prix_map:PRIX_ACHAT_MAP},updated_at:new Date().toISOString()},{onConflict:'user_id'});
+
+  // Rentabilité
+  await supa.from('rent_params').upsert({user_id:uid,params:rentParams,statut_juridique,updated_at:new Date().toISOString()},{onConflict:'user_id'});
+
+  // Profil
+  const PROFILE_FIELDS = ['e-nom','e-dir','e-siret','e-adresse','e-tel','e-tva','e-validite','e-nextnum'];
+  const profilData = {};
+  PROFILE_FIELDS.forEach(id => { const el=document.getElementById(id); if(el) profilData[id]=el.value; });
+  await supa.from('profils').upsert({
+    id:uid,nom:profilData['e-nom'],directeur:profilData['e-dir'],siret:profilData['e-siret'],
+    adresse:profilData['e-adresse'],tel:profilData['e-tel'],tva:profilData['e-tva'],
+    validite:profilData['e-validite'],nextnum:profilData['e-nextnum'],updated_at:new Date().toISOString()
+  },{onConflict:'id'});
+
+  toastSave();
+}
+
+async function sauvegarderDevis(d) {
+  if (!currentUser) return;
+  const uid = currentUser.id;
+  if (d._id) {
+    await supa.from('devis').update({num:d.num,client:d.client,objet:d.objet,date:d.date,montant:d.montant,statut:d.statut,lignes:d.lignes}).eq('id',d._id);
+  } else {
+    const {data} = await supa.from('devis').insert({user_id:uid,num:d.num,client:d.client,objet:d.objet,date:d.date,montant:d.montant,statut:d.statut,lignes:d.lignes}).select();
+    if (data && data[0]) d._id = data[0].id;
+  }
+}
+
+async function supprimerDevisCloud(id) {
+  if (!currentUser || !id) return;
+  await supa.from('devis').delete().eq('id',id);
+}
+
+// ── FALLBACK LOCALSTORAGE ─────────────────────────────────────────────────────
+const STORAGE_KEY = 'devispeint_pro_v1';
+const PROFILE_FIELDS = ['e-nom','e-dir','e-siret','e-adresse','e-tel','e-tva','e-validite','e-nextnum'];
+
+function sauvegarderLocal() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({devisList,FOURNISSEURS,PRIX_ACHAT_MAP,rentParams,statut_juridique,
+      tarifs_custom:TARIFS.map(t=>({p:t.p,prix:t.prix,n:t.n})),
+      profil:Object.fromEntries(PROFILE_FIELDS.map(id=>{const el=document.getElementById(id);return[id,el?el.value:''];})),
+      saved_at:new Date().toISOString()}));
+  } catch(e) { console.warn('localStorage error',e); }
+}
+
+function restaurer() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return false;
+    const data = JSON.parse(raw);
+    if (data.devisList)    devisList    = data.devisList;
+    if (data.FOURNISSEURS) FOURNISSEURS = data.FOURNISSEURS;
+    if (data.PRIX_ACHAT_MAP) Object.assign(PRIX_ACHAT_MAP, data.PRIX_ACHAT_MAP);
+    if (data.rentParams)   Object.assign(rentParams, data.rentParams);
+    if (data.statut_juridique) statut_juridique = data.statut_juridique;
+    if (data.tarifs_custom) data.tarifs_custom.forEach(tc=>{const t=TARIFS.find(x=>x.p===tc.p);if(t){t.prix=tc.prix;t.n=tc.n;}});
+    if (data.profil) window._savedProfil = data.profil;
+    return true;
+  } catch(e) { return false; }
+}
+
+function appliquerProfil() {
+  if (!window._savedProfil) return;
+  PROFILE_FIELDS.forEach(id=>{const el=document.getElementById(id);if(el&&window._savedProfil[id]!==undefined)el.value=window._savedProfil[id];});
+  updateSidebar();
+}
+
+function toastSave() {
+  const t=document.getElementById('toast');
+  if(!t)return;
+  t.textContent='💾 Sauvegardé';
+  t.className='toast show';
+  setTimeout(()=>t.className='toast',1800);
+}
+
+function resetData() {
+  if(!confirm('Effacer toutes les données locales ?'))return;
+  localStorage.removeItem(STORAGE_KEY);
+  location.reload();
+}
+
+// Sauvegarde automatique toutes les 60s
+setInterval(()=>{sauvegarder();},60000);
+
+// Sauvegarde sur modification profil/tarifs
+document.addEventListener('input',e=>{
+  if(e.target.classList.contains('price-input')||e.target.classList.contains('note-input')||
+     e.target.classList.contains('prix-achat-input')||PROFILE_FIELDS.includes(e.target.id)){
+    clearTimeout(window._saveTimer);
+    window._saveTimer=setTimeout(sauvegarder,1500);
+  }
+});
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+statut_juridique = 'sarl_eurl';
+rentParams.urssaf = 47;
+
+// Vérifier session Supabase existante
+(async () => {
+  const {data:{session}} = await supa.auth.getSession();
+  if (session && session.user) {
+    await onLogin(session.user);
+  } else {
+    // Essayer restauration locale en attendant
+    const restored = restaurer();
+    if (restored && statut_juridique === 'autoentrepreneur') rentParams.urssaf = 23;
+    renderDashboard();
+    setTimeout(appliquerProfil, 50);
+    showAuthModal('login');
+  }
+
+  // Écouter les changements de session
+  supa.auth.onAuthStateChange(async (event, session) => {
+    if (event === 'SIGNED_IN' && session) { currentUser = session.user; }
+    if (event === 'SIGNED_OUT') { currentUser = null; showAuthModal('login'); }
+  });
+})();
+
+</script>
+</body>
+</html>
