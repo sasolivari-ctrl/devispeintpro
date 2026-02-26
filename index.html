@@ -590,6 +590,10 @@ textarea.inp{min-height:130px;resize:vertical;line-height:1.7;}
         <span class="nav-icon">📁</span> Mes devis
         <span class="nav-badge" id="nb-devis">0</span>
       </div>
+      <div class="nav-item" data-view="factures" onclick="showView('factures')">
+        <span class="nav-icon">🧾</span> Mes factures
+        <span class="nav-badge" id="nb-factures">0</span>
+      </div>
       <div class="nav-item" data-view="tarifs" onclick="showView('tarifs')">
         <span class="nav-icon">💶</span> Mes tarifs
       </div>
@@ -784,6 +788,25 @@ textarea.inp{min-height:130px;resize:vertical;line-height:1.7;}
         </div>
       </div>
 
+      <!-- ── FACTURES ── -->
+      <div class="view" id="view-factures">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+          <div>
+            <div style="font-family:'Playfair Display',serif;font-size:20px;">Mes factures</div>
+            <div style="font-size:12px;color:#999;margin-top:3px;">Convertissez vos devis en factures et gérez les acomptes</div>
+          </div>
+        </div>
+        <div class="card">
+          <table class="devis-table">
+            <thead><tr>
+              <th>N° Facture</th><th>Client</th><th>Type</th><th>Date</th>
+              <th>Statut</th><th style="text-align:right;">Montant TTC</th><th></th>
+            </tr></thead>
+            <tbody id="factures-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
       <!-- ── HISTORIQUE ── -->
       <div class="view" id="view-historique">
         <div class="hist-bar">
@@ -881,6 +904,7 @@ textarea.inp{min-height:130px;resize:vertical;line-height:1.7;}
               <div class="field">
                 <label>Taux TVA</label>
                 <select class="inp" id="e-tva">
+                  <option value="0">0% — Auto-entrepreneur (franchise TVA)</option>
                   <option value="10" selected>10% — Rénovation</option>
                   <option value="20">20% — Normal</option>
                   <option value="5.5">5,5% — Réduit</option>
@@ -901,6 +925,10 @@ textarea.inp{min-height:130px;resize:vertical;line-height:1.7;}
               <div class="field col-span-2">
                 <label>Conditions de paiement</label>
                 <textarea class="inp" rows="3" id="e-conditions">30% à la commande, solde à la livraison. Pénalités de retard : 3× le taux légal.</textarea>
+              </div>
+              <div class="field col-span-2">
+                <label>Message pied de page (RIB, mentions légales, etc.)</label>
+                <textarea class="inp" rows="4" id="e-footer" placeholder="Ex: Paiement par virement — IBAN : FR76 0000 0000 0000 0000 0000 000 — BIC : XXXXXXXX&#10;Garantie décennale n°12345 — Assureur : AXA&#10;Merci de votre confiance !"></textarea>
               </div>
             </div>
             <button class="btn-save" onclick="saveProfil()">💾 Enregistrer</button>
@@ -938,6 +966,7 @@ textarea.inp{min-height:130px;resize:vertical;line-height:1.7;}
     <button class="mob-btn active" data-view="dashboard" onclick="showView('dashboard')"><span class="icon">📊</span>Accueil</button>
     <button class="mob-btn" data-view="nouveau" onclick="showView('nouveau')"><span class="icon">✏️</span>Nouveau</button>
     <button class="mob-btn" data-view="historique" onclick="showView('historique')"><span class="icon">📁</span>Devis</button>
+    <button class="mob-btn" data-view="factures" onclick="showView('factures')"><span class="icon">🧾</span>Factures</button>
     <button class="mob-btn" data-view="tarifs" onclick="showView('tarifs')"><span class="icon">💶</span>Tarifs</button>
     <button class="mob-btn" data-view="rentabilite" onclick="showView('rentabilite')"><span class="icon">📈</span>Rentabilité</button>
     <button class="mob-btn" data-view="fournitures" onclick="showView('fournitures')"><span class="icon">🛒</span>Fournitures</button>
@@ -999,7 +1028,7 @@ let recognition = null;
 let isRecording = false;
 
 // ── VIEWS ────────────────────────────────────────────────────────────────────
-const TITLES = {dashboard:'Tableau de bord',nouveau:'Nouveau devis',historique:'Mes devis',tarifs:'Mes tarifs',rentabilite:'📈 Rentabilité chantier',fournitures:'🛒 Bon de commande fournitures','import-export':'🔄 Import / Export','fournisseurs':'🏪 Mes fournisseurs & prix d\'achat','profil':'Mon entreprise'};
+const TITLES = {dashboard:'Tableau de bord',nouveau:'Nouveau devis',historique:'Mes devis',factures:'🧾 Mes factures',tarifs:'Mes tarifs',rentabilite:'📈 Rentabilité chantier',fournitures:'🛒 Bon de commande fournitures','import-export':'🔄 Import / Export','fournisseurs':'🏪 Mes fournisseurs & prix d\'achat','profil':'Mon entreprise'};
 
 function showView(name) {
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
@@ -1014,6 +1043,7 @@ function showView(name) {
   if (name === 'import-export') renderImportExport();
   if (name === 'fournisseurs') renderFournisseurs();
   if (name === 'fournitures') renderFournitures();
+  if (name === 'factures') renderFactures();
 }
 
 // ── SIDEBAR MOBILE ───────────────────────────────────────────────────────────
@@ -1053,9 +1083,12 @@ function rowHTML(d, showActions) {
   const bc = {Accepté:'b-ok','En attente':'b-wait',Refusé:'b-no'};
   const idx = devisList.indexOf(d);
   const actions = showActions ? `
-    <div style="display:flex;gap:6px;margin-top:5px;">
+    <div style="display:flex;gap:6px;margin-top:5px;flex-wrap:wrap;">
       ${d.statut!=='Accepté'?`<button onclick="event.stopPropagation();changeStatut(${idx},'Accepté')" style="font-size:11px;padding:3px 8px;border:1px solid var(--teal);border-radius:4px;background:var(--teal-lt);color:var(--teal);cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">✓ Accepté</button>`:''}
       ${d.statut!=='Refusé'?`<button onclick="event.stopPropagation();changeStatut(${idx},'Refusé')" style="font-size:11px;padding:3px 8px;border:1px solid #F5C0BC;border-radius:4px;background:#FDECEA;color:var(--red);cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">✗ Refusé</button>`:''}
+      <button onclick="event.stopPropagation();convertirEnFacture(${idx})" style="font-size:11px;padding:3px 8px;border:1px solid #C8951E;border-radius:4px;background:#FBF5DF;color:#C8951E;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">🧾 Facture</button>
+      <button onclick="event.stopPropagation();creerAcompte(${idx})" style="font-size:11px;padding:3px 8px;border:1px solid #888;border-radius:4px;background:#F5F5F5;color:#555;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">💰 Acompte</button>
+      <button onclick="event.stopPropagation();envoyerEmail(${idx})" style="font-size:11px;padding:3px 8px;border:1px solid var(--teal);border-radius:4px;background:var(--teal-lt);color:var(--teal);cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">✉️ Envoyer</button>
     </div>` : '';
   return `<tr onclick="showRentDevis(${idx})" style="cursor:pointer;">
     <td><div class="devis-num">${d.num}</div></td>
@@ -3190,6 +3223,8 @@ function imprimerDevis() {
   const adresse  = document.getElementById('c-adresse')?.value || '';
   const objet    = document.getElementById('c-objet')?.value   || 'Travaux de peinture';
   const validite = document.getElementById('e-validite')?.value || '30';
+  const conditions = document.getElementById('e-conditions')?.value || '';
+  const footer   = document.getElementById('e-footer')?.value || '';
   const numDevis = m.numDevis || 'DEV-2025-001';
   const dateStr  = new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'});
   const expStr   = new Date(Date.now()+parseInt(validite)*86400000).toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'});
@@ -3341,6 +3376,8 @@ function imprimerDevis() {
 
 <div class="footer">
   Devis valable ${validite} jours — ${entNom}${entSiret?' — SIRET '+entSiret:''}<br>
+  ${conditions ? conditions + '<br>' : ''}
+  ${footer ? footer.replace(/\n/g,'<br>') + '<br>' : ''}
   Ce document vaut acceptation des conditions générales de vente.
 </div>
 
@@ -3357,6 +3394,248 @@ function imprimerDevis() {
   setTimeout(() => w.focus(), 300);
 }
 
+// ── FACTURES ─────────────────────────────────────────────────────────────────
+let facturesList = [];
+let factureCounter = 1;
+
+function renderFactures() {
+  const tbody = document.getElementById('factures-tbody');
+  document.getElementById('nb-factures').textContent = facturesList.length;
+  if (!facturesList.length) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:#bbb;">Aucune facture — convertissez un devis accepté en facture depuis "Mes devis"</td></tr>';
+    return;
+  }
+  const bc = {Payée:'b-ok','En attente':'b-wait',Impayée:'b-no',Acompte:'b-wait'};
+  tbody.innerHTML = facturesList.map((f, i) => `
+    <tr>
+      <td><div class="devis-num">${f.num}</div>${f.devisNum?`<div style="font-size:10px;color:#aaa;">Devis : ${f.devisNum}</div>`:''}</td>
+      <td><div class="devis-client">${f.client}</div></td>
+      <td><span class="badge" style="background:${f.type==='Acompte'?'#E8F0FE':'#E2F0EC'};color:${f.type==='Acompte'?'#1A73E8':'#1A6B57'};">${f.type||'Facture'}</span></td>
+      <td style="color:#aaa;font-size:12px;">${f.date}</td>
+      <td><span class="badge ${bc[f.statut]||'b-wait'}">${f.statut}</span></td>
+      <td class="devis-amount">${fEuro(f.montant)}</td>
+      <td>
+        <div style="display:flex;gap:4px;">
+          <button onclick="ouvrirPDFFacture(${i})" style="font-size:11px;padding:3px 8px;border:1px solid #D5D0C4;border-radius:4px;background:#F5F5F5;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">🖨️ PDF</button>
+          ${f.statut!=='Payée'?`<button onclick="marquerPayee(${i})" style="font-size:11px;padding:3px 8px;border:1px solid var(--teal);border-radius:4px;background:var(--teal-lt);color:var(--teal);cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">✓ Payée</button>`:''}
+          <button onclick="envoyerEmailFacture(${i})" style="font-size:11px;padding:3px 8px;border:1px solid var(--teal);border-radius:4px;background:var(--teal-lt);color:var(--teal);cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">✉️</button>
+        </div>
+      </td>
+    </tr>`).join('');
+}
+
+function convertirEnFacture(devisIdx) {
+  const d = devisList[devisIdx];
+  if (!d) return;
+  const prefix = document.getElementById('e-nextnum')?.value?.replace(/DEV/,'FAC') || 'FAC-2025-001';
+  const num = 'FAC-' + Date.now().toString().slice(-6);
+  const f = {
+    num, devisNum: d.num, client: d.client, objet: d.objet,
+    date: new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'}),
+    montant: d.montant, statut: 'En attente', type: 'Facture', lignes: d.lignes || [],
+    pieces: d.pieces || []
+  };
+  facturesList.unshift(f);
+  renderFactures();
+  showToast('Devis converti en facture ✓', 'ok');
+  showView('factures');
+}
+
+function creerAcompte(devisIdx) {
+  const d = devisList[devisIdx];
+  if (!d) return;
+  const pct = prompt('Pourcentage d\'acompte ? (ex: 30)', '30');
+  if (!pct) return;
+  const p = parseFloat(pct) / 100;
+  const montant = Math.round(d.montant * p * 100) / 100;
+  const num = 'ACP-' + Date.now().toString().slice(-6);
+  const f = {
+    num, devisNum: d.num, client: d.client, objet: d.objet + ` (acompte ${pct}%)`,
+    date: new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'}),
+    montant, statut: 'En attente', type: 'Acompte', lignes: [], pieces: [],
+    acomptePct: parseFloat(pct), totalDevis: d.montant
+  };
+  facturesList.unshift(f);
+  renderFactures();
+  showToast(`Facture d'acompte ${pct}% créée ✓`, 'ok');
+  showView('factures');
+}
+
+function marquerPayee(idx) {
+  facturesList[idx].statut = 'Payée';
+  renderFactures();
+  showToast('Facture marquée payée ✓', 'ok');
+}
+
+function ouvrirPDFFacture(idx) {
+  const f = facturesList[idx];
+  if (!f) return;
+  // Réutilise la fonction PDF mais en mode facture
+  const entNom   = document.getElementById('e-nom')?.value    || 'Mon Entreprise';
+  const entDir   = document.getElementById('e-dir')?.value    || '';
+  const entAdr   = document.getElementById('e-adresse')?.value|| '';
+  const entTel   = document.getElementById('e-tel')?.value    || '';
+  const entSiret = document.getElementById('e-siret')?.value  || '';
+  const conditions = document.getElementById('e-conditions')?.value || '';
+  const footer   = document.getElementById('e-footer')?.value || '';
+  const tvaR     = parseFloat(document.getElementById('e-tva').value)/100 || 0.10;
+  const dateStr  = f.date;
+
+  const sousTotal = (f.lignes||[]).reduce((s,l)=>(l.q&&l.pu?s+l.q*l.pu:s),0) || f.montant/(1+tvaR)/1.10;
+  const forfait   = sousTotal * 0.10;
+  const totalHT   = sousTotal + forfait;
+  const tva       = totalHT * tvaR;
+  const ttc       = f.montant || totalHT + tva;
+
+  const isAcompte = f.type === 'Acompte';
+
+  const html = `<!DOCTYPE html>
+<html lang="fr"><head><meta charset="UTF-8"><title>${f.num}</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Segoe UI',Arial,sans-serif;font-size:13px;color:#1A1A2E;background:#fff;padding:20px;}
+@media print{body{padding:0;}@page{margin:15mm 12mm;}}
+.header{background:#111820;color:#fff;padding:20px 24px;border-radius:8px;display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;}
+.company{font-size:18px;font-family:Georgia,serif;color:#C8951E;font-weight:700;margin-bottom:4px;}
+.meta{font-size:11px;color:rgba(255,255,255,.5);line-height:1.6;}
+.num{font-size:22px;font-family:Georgia,serif;color:#C8951E;text-align:right;}
+.type-badge{background:#C8951E;color:#111820;font-size:11px;font-weight:700;padding:3px 10px;border-radius:4px;display:inline-block;margin-top:4px;}
+.client-block{display:flex;gap:20px;margin-bottom:20px;padding:16px;background:#F8F6F0;border-radius:8px;}
+.client-name{font-size:15px;font-weight:700;margin-bottom:4px;}
+.client-info{font-size:12px;color:#888;line-height:1.6;}
+.objet{background:#111820;color:#C8951E;padding:7px 14px;border-radius:6px;font-size:12px;font-weight:600;margin-bottom:16px;}
+table{width:100%;border-collapse:collapse;}
+thead tr th{background:#2A3240;color:#C8951E;padding:8px 10px;font-size:10px;text-transform:uppercase;letter-spacing:.5px;text-align:left;}
+thead tr th:last-child{text-align:right;}
+.totaux{margin-top:12px;display:flex;justify-content:flex-end;}
+.totaux-inner{width:280px;border:1px solid #EEE;border-radius:8px;overflow:hidden;}
+.tot-row{display:flex;justify-content:space-between;padding:7px 14px;border-bottom:1px solid #EEE;font-size:12px;}
+.tot-row:last-child{border-bottom:none;}
+.tot-row.ttc{background:#111820;color:#fff;font-size:14px;font-weight:700;}
+.tot-row.ttc span:last-child{color:#C8951E;}
+.footer{margin-top:24px;padding-top:14px;border-top:1px solid #EEE;font-size:11px;color:#888;text-align:center;line-height:1.8;white-space:pre-line;}
+.btn-print{position:fixed;bottom:20px;right:20px;padding:12px 22px;background:#111820;color:#C8951E;border:none;border-radius:9px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;}
+@media print{.btn-print{display:none;}}
+</style></head><body>
+<div class="header">
+  <div>
+    <div class="company">${entNom}</div>
+    ${entDir?`<div class="meta">${entDir}</div>`:''}
+    ${entAdr?`<div class="meta">${entAdr}</div>`:''}
+    ${entTel?`<div class="meta">${entTel}</div>`:''}
+    ${entSiret?`<div class="meta">SIRET : ${entSiret}</div>`:''}
+  </div>
+  <div>
+    <div class="num">${f.num}</div>
+    <div class="type-badge">${isAcompte?'FACTURE D\'ACOMPTE':'FACTURE'}</div>
+    <div class="meta" style="text-align:right;margin-top:6px;">Émise le ${dateStr}</div>
+    ${f.devisNum?`<div class="meta" style="text-align:right;">Réf. devis : ${f.devisNum}</div>`:''}
+  </div>
+</div>
+<div class="client-block">
+  <div>
+    <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#aaa;margin-bottom:6px;">Client</div>
+    <div class="client-name">${f.client}</div>
+  </div>
+</div>
+<div class="objet">Objet : ${f.objet||'Travaux de peinture'}</div>
+${isAcompte ? `
+<table>
+  <thead><tr><th>Description</th><th style="text-align:right;">Montant TTC</th></tr></thead>
+  <tbody>
+    <tr><td style="padding:10px;">Acompte ${f.acomptePct||30}% sur devis ${f.devisNum||''}<br><span style="font-size:11px;color:#aaa;">Total devis : ${fEuro(f.totalDevis||0)}</span></td>
+    <td style="padding:10px;text-align:right;font-weight:700;">${fEuro(f.montant)}</td></tr>
+  </tbody>
+</table>
+<div class="totaux">
+  <div class="totaux-inner">
+    <div class="tot-row ttc"><span>MONTANT À RÉGLER</span><span>${fEuro(f.montant)}</span></div>
+  </div>
+</div>` : `
+<div class="totaux">
+  <div class="totaux-inner">
+    <div class="tot-row ttc"><span>TOTAL TTC</span><span>${fEuro(ttc)}</span></div>
+  </div>
+</div>`}
+${footer ? `<div class="footer">${footer}</div>` : ''}
+<button class="btn-print" onclick="window.print()">🖨️ Imprimer / PDF</button>
+</body></html>`;
+
+  const w = window.open('','_blank','width=900,height=700');
+  if (!w) { showToast('Autorisez les popups','err'); return; }
+  w.document.write(html);
+  w.document.close();
+}
+
+// ── ENVOI EMAIL ───────────────────────────────────────────────────────────────
+function envoyerEmail(devisIdx) {
+  const d = devisList[devisIdx];
+  if (!d) return;
+  afficherModalEmail(d, 'devis');
+}
+
+function envoyerEmailFacture(factureIdx) {
+  const f = facturesList[factureIdx];
+  if (!f) return;
+  afficherModalEmail(f, 'facture');
+}
+
+function afficherModalEmail(doc, type) {
+  const ex = document.getElementById('email-modal');
+  if (ex) ex.remove();
+
+  const entNom = document.getElementById('e-nom')?.value || 'Mon Entreprise';
+  const emailEntreprise = document.getElementById('e-email')?.value || '';
+  const sujetDefaut = type === 'devis'
+    ? `Votre devis ${doc.num} — ${entNom}`
+    : `Votre ${doc.type==='Acompte'?"facture d'acompte":'facture'} ${doc.num} — ${entNom}`;
+  const texteDefaut = type === 'devis'
+    ? `Bonjour ${doc.client},\n\nVeuillez trouver ci-joint votre devis n°${doc.num} pour les travaux : ${doc.objet||'travaux de peinture'}.\n\nCe devis est valable 30 jours. N'hésitez pas à me contacter pour toute question.\n\nCordialement,\n${entNom}`
+    : `Bonjour ${doc.client},\n\nVeuillez trouver ci-joint votre ${doc.type==='Acompte'?"facture d'acompte":'facture'} n°${doc.num} d'un montant de ${fEuro(doc.montant)}.\n\nMerci de procéder au règlement selon les conditions convenues.\n\nCordialement,\n${entNom}`;
+
+  const m = document.createElement('div');
+  m.id = 'email-modal';
+  m.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;';
+  m.innerHTML = `<div style="background:#fff;border-radius:16px;padding:28px;width:100%;max-width:520px;box-shadow:0 20px 60px rgba(0,0,0,.3);font-family:'Plus Jakarta Sans',sans-serif;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+      <div style="font-family:'Playfair Display',serif;font-size:18px;">✉️ Envoyer par email</div>
+      <button onclick="document.getElementById('email-modal').remove()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#aaa;">×</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div>
+        <label style="font-size:12px;font-weight:700;color:#555;display:block;margin-bottom:4px;">Destinataire (email client)</label>
+        <input id="email-to" type="email" class="inp" placeholder="client@example.com" style="width:100%;">
+      </div>
+      <div>
+        <label style="font-size:12px;font-weight:700;color:#555;display:block;margin-bottom:4px;">Sujet</label>
+        <input id="email-sujet" type="text" class="inp" value="${sujetDefaut}" style="width:100%;">
+      </div>
+      <div>
+        <label style="font-size:12px;font-weight:700;color:#555;display:block;margin-bottom:4px;">Message (modifiable)</label>
+        <textarea id="email-texte" class="inp" rows="8" style="width:100%;line-height:1.6;">${texteDefaut}</textarea>
+      </div>
+      <div style="background:#FBF5DF;border:1.5px solid #E8D06A;border-radius:8px;padding:10px 12px;font-size:12px;color:#7A600E;">
+        💡 Le PDF du ${type} sera joint automatiquement. Un lien mailto va s'ouvrir dans votre application email.
+      </div>
+      <div style="display:flex;gap:8px;margin-top:6px;">
+        <button onclick="document.getElementById('email-modal').remove()" style="flex:1;padding:11px;background:#F5F5F5;border:1.5px solid #E2DDD4;border-radius:9px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;">Annuler</button>
+        <button onclick="envoyerMailto()" style="flex:2;padding:11px;background:#111820;color:#fff;border:none;border-radius:9px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;">✉️ Ouvrir dans mon email</button>
+      </div>
+    </div>
+  </div>`;
+  document.body.appendChild(m);
+}
+
+function envoyerMailto() {
+  const to     = document.getElementById('email-to')?.value.trim() || '';
+  const sujet  = encodeURIComponent(document.getElementById('email-sujet')?.value || '');
+  const texte  = encodeURIComponent(document.getElementById('email-texte')?.value || '');
+  if (!to) { showToast('Entrez l\'email du destinataire','err'); return; }
+  window.location.href = `mailto:${to}?subject=${sujet}&body=${texte}`;
+  document.getElementById('email-modal')?.remove();
+  showToast('Application email ouverte ✓','ok');
+}
+
 // ── SUPABASE ─────────────────────────────────────────────────────────────────
 const SUPA_URL = "https://ixvlgangapkavnjiurlt.supabase.co";
 const SUPA_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml4dmxnYW5nYXBrYXZuaml1cmx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE5MzIyMjMsImV4cCI6MjA4NzUwODIyM30.VD-Zb_uGHjdLL3AB78t_ZSs6Rz9kuJWKNhXwj-hjgho";
@@ -3370,29 +3649,86 @@ function showAuthModal(mode) {
   if (ex) ex.remove();
   const m = document.createElement('div');
   m.id = 'auth-modal';
-  m.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;';
-  m.innerHTML = '<div style="background:#fff;border-radius:16px;padding:32px;width:100%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,.3);font-family:sans-serif;">'
-    + '<div style="font-family:Georgia,serif;font-size:24px;color:#111820;margin-bottom:6px;">DevisPeint <span style="color:#C8951E;">Pro</span></div>'
-    + '<div style="font-size:13px;color:#aaa;margin-bottom:24px;">Chiffrage IA peinture</div>'
-    + '<div style="display:flex;gap:8px;margin-bottom:20px;">'
-    +   '<button id="tab-login" onclick="switchAuthTab(\'login\')" style="flex:1;padding:9px;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;border:2px solid #111820;background:#111820;color:#fff;">Connexion</button>'
-    +   '<button id="tab-register" onclick="switchAuthTab(\'register\')" style="flex:1;padding:9px;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;border:2px solid #E2DDD4;background:#fff;color:#888;">Créer un compte</button>'
-    + '</div>'
-    + '<div id="auth-err" style="display:none;background:#FDECEA;border-radius:8px;padding:10px 14px;font-size:13px;color:#C0392B;margin-bottom:14px;"></div>'
-    + '<input id="auth-email" type="email" placeholder="Email" style="width:100%;padding:11px 14px;border:1.5px solid #E2DDD4;border-radius:9px;font-size:14px;margin-bottom:10px;box-sizing:border-box;font-family:sans-serif;">'
-    + '<input id="auth-pass" type="password" placeholder="Mot de passe" style="width:100%;padding:11px 14px;border:1.5px solid #E2DDD4;border-radius:9px;font-size:14px;margin-bottom:16px;box-sizing:border-box;font-family:sans-serif;">'
-    + '<button id="auth-submit" onclick="doAuth()" style="width:100%;padding:13px;background:#C8951E;color:#fff;border:none;border-radius:9px;font-size:15px;font-weight:700;cursor:pointer;font-family:sans-serif;">Se connecter</button>'
-    + '<div id="auth-forgot" style="text-align:center;margin-top:12px;font-size:12px;color:#aaa;">Mot de passe oublié ? <a href="#" onclick="doReset();return false;" style="color:#C8951E;">Réinitialiser</a></div>'
-    + '</div>';
+  m.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;overflow-y:auto;';
+  
+  const inp = (id, type, ph, label) => `<div style="margin-bottom:10px;">
+    <label style="display:block;font-size:12px;font-weight:700;color:#555;margin-bottom:4px;">${label}</label>
+    <input id="${id}" type="${type}" placeholder="${ph}" style="width:100%;padding:10px 14px;border:1.5px solid #E2DDD4;border-radius:9px;font-size:13px;box-sizing:border-box;font-family:sans-serif;">
+  </div>`;
+
+  m.innerHTML = `<div style="background:#fff;border-radius:16px;padding:32px;width:100%;max-width:420px;box-shadow:0 20px 60px rgba(0,0,0,.3);font-family:sans-serif;margin:auto;">
+    <div style="font-family:Georgia,serif;font-size:24px;color:#111820;margin-bottom:4px;">DevisPeint <span style="color:#C8951E;">Pro</span></div>
+    <div style="font-size:13px;color:#aaa;margin-bottom:20px;">Chiffrage IA peinture</div>
+    
+    <div style="display:flex;gap:8px;margin-bottom:20px;">
+      <button id="tab-login" onclick="switchAuthTab('login')" style="flex:1;padding:9px;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;border:2px solid #111820;background:#111820;color:#fff;">Connexion</button>
+      <button id="tab-register" onclick="switchAuthTab('register')" style="flex:1;padding:9px;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;border:2px solid #E2DDD4;background:#fff;color:#888;">Créer un compte</button>
+    </div>
+
+    <button onclick="loginGoogle()" style="width:100%;padding:11px;background:#fff;color:#333;border:1.5px solid #E2DDD4;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;font-family:sans-serif;display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:16px;">
+      <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+      Continuer avec Google
+    </button>
+    
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+      <div style="flex:1;height:1px;background:#E2DDD4;"></div>
+      <span style="font-size:12px;color:#aaa;">ou</span>
+      <div style="flex:1;height:1px;background:#E2DDD4;"></div>
+    </div>
+
+    <div id="auth-err" style="display:none;background:#FDECEA;border-radius:8px;padding:10px 14px;font-size:13px;color:#C0392B;margin-bottom:14px;"></div>
+    
+    <!-- Champs connexion -->
+    <div id="fields-login">
+      ${inp('auth-email','email','votre@email.fr','Email')}
+      ${inp('auth-pass','password','Mot de passe','Mot de passe')}
+    </div>
+
+    <!-- Champs inscription -->
+    <div id="fields-register" style="display:none;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+        <div>
+          <label style="display:block;font-size:12px;font-weight:700;color:#555;margin-bottom:4px;">Prénom *</label>
+          <input id="reg-prenom" type="text" placeholder="Jean" style="width:100%;padding:10px 14px;border:1.5px solid #E2DDD4;border-radius:9px;font-size:13px;box-sizing:border-box;font-family:sans-serif;">
+        </div>
+        <div>
+          <label style="display:block;font-size:12px;font-weight:700;color:#555;margin-bottom:4px;">Nom *</label>
+          <input id="reg-nom" type="text" placeholder="Martin" style="width:100%;padding:10px 14px;border:1.5px solid #E2DDD4;border-radius:9px;font-size:13px;box-sizing:border-box;font-family:sans-serif;">
+        </div>
+      </div>
+      ${inp('auth-email','email','votre@email.fr','Email *')}
+      ${inp('auth-pass','password','Minimum 8 caractères','Mot de passe *')}
+      ${inp('reg-entreprise','text','Peinture Martin & Fils','Nom de l\'entreprise *')}
+      ${inp('reg-tel','tel','06 00 00 00 00','Téléphone')}
+      ${inp('reg-adresse','text','12 rue des Artisans, 69000 Lyon','Adresse')}
+      ${inp('reg-siret','text','000 000 000 00000','SIRET')}
+      <div style="margin-bottom:10px;">
+        <label style="display:block;font-size:12px;font-weight:700;color:#555;margin-bottom:4px;">Statut juridique</label>
+        <select id="reg-statut" style="width:100%;padding:10px 14px;border:1.5px solid #E2DDD4;border-radius:9px;font-size:13px;box-sizing:border-box;font-family:sans-serif;background:#fff;">
+          <option value="autoentrepreneur">Auto-entrepreneur / Micro-entreprise</option>
+          <option value="sarl_eurl">SARL / EURL</option>
+          <option value="sas_sasu">SAS / SASU</option>
+          <option value="ei">Entreprise individuelle (EI)</option>
+          <option value="autre">Autre</option>
+        </select>
+      </div>
+    </div>
+
+    <button id="auth-submit" onclick="doAuth()" data-mode="login" style="width:100%;padding:13px;background:#C8951E;color:#fff;border:none;border-radius:9px;font-size:15px;font-weight:700;cursor:pointer;font-family:sans-serif;margin-top:4px;">Se connecter</button>
+    <div id="auth-forgot" style="text-align:center;margin-top:12px;font-size:12px;color:#aaa;">Mot de passe oublié ? <a href="#" onclick="doReset();return false;" style="color:#C8951E;">Réinitialiser</a></div>
+  </div>`;
+  
   document.body.appendChild(m);
   if (mode === 'register') switchAuthTab('register');
-  setTimeout(() => document.getElementById('auth-email').focus(), 100);
+  setTimeout(() => document.getElementById('auth-email')?.focus(), 100);
 }
 
 function switchAuthTab(tab) {
   const isLogin = tab === 'login';
   document.getElementById('tab-login').style.cssText    = 'flex:1;padding:9px;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;border:2px solid '+(isLogin?'#111820;background:#111820;color:#fff;':'#E2DDD4;background:#fff;color:#888;');
   document.getElementById('tab-register').style.cssText = 'flex:1;padding:9px;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;border:2px solid '+(!isLogin?'#111820;background:#111820;color:#fff;':'#E2DDD4;background:#fff;color:#888;');
+  document.getElementById('fields-login').style.display  = isLogin ? 'block' : 'none';
+  document.getElementById('fields-register').style.display = isLogin ? 'none' : 'block';
   document.getElementById('auth-submit').textContent = isLogin ? 'Se connecter' : 'Créer mon compte';
   document.getElementById('auth-forgot').style.display = isLogin ? 'block' : 'none';
   document.getElementById('auth-submit').dataset.mode = tab;
@@ -3406,12 +3742,37 @@ async function doAuth() {
   const btn   = document.getElementById('auth-submit');
   if (!email || !pass) { err.style.display='block'; err.textContent='Email et mot de passe requis.'; return; }
   btn.textContent = 'Chargement…'; btn.disabled = true;
-  const fn = mode === 'register' ? supa.auth.signUp({email,password:pass}) : supa.auth.signInWithPassword({email,password:pass});
+
+  let fn;
+  if (mode === 'register') {
+    const prenom    = document.getElementById('reg-prenom')?.value.trim() || '';
+    const nom       = document.getElementById('reg-nom')?.value.trim() || '';
+    const entreprise= document.getElementById('reg-entreprise')?.value.trim() || '';
+    const tel       = document.getElementById('reg-tel')?.value.trim() || '';
+    const adresse   = document.getElementById('reg-adresse')?.value.trim() || '';
+    const siret     = document.getElementById('reg-siret')?.value.trim() || '';
+    const statut    = document.getElementById('reg-statut')?.value || 'autoentrepreneur';
+    fn = supa.auth.signUp({
+      email, password: pass,
+      options: { data: { prenom, nom, entreprise, tel, adresse, siret, statut_juridique: statut } }
+    });
+  } else {
+    fn = supa.auth.signInWithPassword({email, password: pass});
+  }
+
   const {data, error} = await fn;
   btn.disabled = false;
   if (error) { err.style.display='block'; err.textContent=error.message; btn.textContent=mode==='register'?'Créer mon compte':'Se connecter'; return; }
   if (mode==='register' && !data.session) { err.style.display='block'; err.style.background='#E8F8F0'; err.style.color='#2D8659'; err.textContent='Compte créé ! Vérifiez votre email pour confirmer.'; btn.textContent='Créer mon compte'; return; }
   onLogin(data.user);
+}
+
+async function loginGoogle() {
+  const {error} = await supa.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: window.location.href }
+  });
+  if (error) showToast('Erreur Google : ' + error.message, 'err');
 }
 
 async function doReset() {
@@ -3428,10 +3789,32 @@ async function onLogin(user) {
   currentUser = user;
   const modal = document.getElementById('auth-modal');
   if (modal) modal.remove();
+  
+  // Récupérer nom depuis metadata (Google ou inscription)
+  const meta = user.user_metadata || {};
+  const displayName = meta.full_name || meta.name || [meta.prenom, meta.nom].filter(Boolean).join(' ') || user.email;
+  
   // Afficher user dans topbar
   const tb = document.getElementById('topbar-user');
-  if (tb) tb.innerHTML = '<span style="font-size:12px;color:#aaa;">'+user.email+'</span> <button onclick="doLogout()" style="padding:4px 10px;background:var(--cream);border:1.5px solid #D5D0C4;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;color:var(--ink2);">Déconnexion</button>';
+  if (tb) tb.innerHTML = '<span style="font-size:12px;color:#aaa;">'+displayName+'</span> <button onclick="doLogout()" style="padding:4px 10px;background:var(--cream);border:1.5px solid #D5D0C4;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;color:var(--ink2);">Déconnexion</button>';
+  
   await chargerDonnees();
+  
+  // Si premier login Google ou inscription, pré-remplir le profil depuis les métadonnées
+  if (!window._savedProfil && Object.keys(meta).length > 0) {
+    const entNom = meta.entreprise || [meta.prenom, meta.nom].filter(Boolean).join(' ') || '';
+    window._savedProfil = {
+      'e-nom': entNom,
+      'e-dir': [meta.prenom, meta.nom].filter(Boolean).join(' '),
+      'e-tel': meta.tel || '',
+      'e-adresse': meta.adresse || '',
+      'e-siret': meta.siret || '',
+      'e-tva': meta.statut_juridique === 'autoentrepreneur' ? '0' : '10',
+      'e-validite': '30',
+      'e-nextnum': 'DEV-2025-001'
+    };
+  }
+  
   renderDashboard();
   setTimeout(appliquerProfil, 100);
 }
@@ -3498,7 +3881,7 @@ async function sauvegarder() {
   await supa.from('rent_params').upsert({user_id:uid,params:rentParams,statut_juridique,updated_at:new Date().toISOString()},{onConflict:'user_id'});
 
   // Profil
-  const PROFILE_FIELDS = ['e-nom','e-dir','e-siret','e-adresse','e-tel','e-tva','e-validite','e-nextnum'];
+  const PROFILE_FIELDS = ['e-nom','e-dir','e-siret','e-adresse','e-tel','e-tva','e-validite','e-nextnum','e-conditions','e-footer'];
   const profilData = {};
   PROFILE_FIELDS.forEach(id => { const el=document.getElementById(id); if(el) profilData[id]=el.value; });
   await supa.from('profils').upsert({
@@ -3528,7 +3911,7 @@ async function supprimerDevisCloud(id) {
 
 // ── FALLBACK LOCALSTORAGE ─────────────────────────────────────────────────────
 const STORAGE_KEY = 'devispeint_pro_v1';
-const PROFILE_FIELDS = ['e-nom','e-dir','e-siret','e-adresse','e-tel','e-tva','e-validite','e-nextnum'];
+const PROFILE_FIELDS = ['e-nom','e-dir','e-siret','e-adresse','e-tel','e-tva','e-validite','e-nextnum','e-conditions','e-footer'];
 
 function sauvegarderLocal() {
   try {
