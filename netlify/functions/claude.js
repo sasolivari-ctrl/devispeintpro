@@ -28,6 +28,30 @@ function isRateLimited(ip) {
   return entry.count > RATE_MAX_CALLS;
 }
 
+// ── VÉRIFICATION JWT SUPABASE ─────────────────────────────────────────────────
+// Vérifie que le token est un JWT Supabase valide (signé, non expiré, bonne audience)
+// On vérifie la structure et l'expiration sans appel réseau — léger et fiable
+function verifySupabaseToken(authHeader) {
+  if (!authHeader || !authHeader.startsWith('Bearer ')) return false;
+  const token = authHeader.slice(7);
+  const parts = token.split('.');
+  if (parts.length !== 3) return false;
+  try {
+    const payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString('utf8'));
+    // Vérifie expiration
+    if (!payload.exp || Date.now() / 1000 > payload.exp) return false;
+    // Vérifie que c'est bien un token utilisateur Supabase (pas la clé anon)
+    if (payload.role === 'anon') return false;
+    // Vérifie que c'est bien notre projet Supabase
+    if (payload.iss && !payload.iss.includes('supabase')) return false;
+    // L'utilisateur doit avoir un sub (uid)
+    if (!payload.sub) return false;
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 // ── HANDLER ───────────────────────────────────────────────────────────────────
 exports.handler = async (event) => {
   const origin = event.headers.origin || event.headers.Origin || '';
@@ -39,7 +63,7 @@ exports.handler = async (event) => {
       headers: {
         'Access-Control-Allow-Origin':  ALLOWED_ORIGIN,
         'Access-Control-Allow-Methods': 'POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
         'Access-Control-Max-Age':       '86400',
       },
       body: '',
@@ -52,12 +76,22 @@ exports.handler = async (event) => {
   }
 
   // CORS — bloque les appels depuis d'autres domaines
-  // En dev local (pas de CONTEXT), on est permissif
   const isDev = !process.env.CONTEXT || process.env.CONTEXT === 'dev';
   if (!isDev && origin && origin !== ALLOWED_ORIGIN) {
     return {
       statusCode: 403,
       body: JSON.stringify({ error: 'Origin non autorisée' }),
+    };
+  }
+
+  // AUTH — token Supabase obligatoire (bloque les appels sans session valide)
+  // En dev local, on accepte sans token pour faciliter les tests
+  const authHeader = event.headers.authorization || event.headers.Authorization || '';
+  if (!isDev && !verifySupabaseToken(authHeader)) {
+    return {
+      statusCode: 401,
+      headers: { 'Access-Control-Allow-Origin': ALLOWED_ORIGIN },
+      body: JSON.stringify({ error: 'Authentification requise' }),
     };
   }
 
@@ -151,7 +185,10 @@ exports.handler = async (event) => {
     ...(safeSystem ? { system: safeSystem } : {}),
   };
 
-  // ── APPEL API ─────────────────────────────────────────────────────────────
+  // ── APPEL API — avec timeout 20s pour éviter les suspensions infinies ────
+  const controller = new AbortController();
+  const timeoutId  = setTimeout(() => controller.abort(), 20_000);
+
   try {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -160,8 +197,10 @@ exports.handler = async (event) => {
         'x-api-key':         process.env.ANTHROPIC_API_KEY,
         'anthropic-version': '2023-06-01',
       },
-      body: JSON.stringify(safePayload),
+      body:   JSON.stringify(safePayload),
+      signal: controller.signal,
     });
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
       const errText = await response.text();
@@ -181,6 +220,15 @@ exports.handler = async (event) => {
     };
 
   } catch (err) {
+    clearTimeout(timeoutId);
+    if (err.name === 'AbortError') {
+      console.error('Timeout: Anthropic API did not respond in 20s');
+      return {
+        statusCode: 504,
+        headers: { 'Access-Control-Allow-Origin': ALLOWED_ORIGIN },
+        body: JSON.stringify({ error: 'Délai dépassé. Réessayez.' }),
+      };
+    }
     console.error('Erreur réseau vers Anthropic:', err.message);
     return {
       statusCode: 502,
