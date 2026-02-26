@@ -997,7 +997,11 @@ textarea.inp{min-height:130px;resize:vertical;line-height:1.7;}
 
 <div class="toast" id="toast" role="alert" aria-live="assertive" aria-atomic="true"></div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- SÉCURITÉ: version épinglée pour éviter les mises à jour non contrôlées.
+     Pour ajouter un hash SRI (recommandé), générer avec :
+     curl https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.js | openssl dgst -sha384 -binary | openssl base64 -A
+     puis ajouter integrity="sha384-HASH" crossorigin="anonymous" -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.js"></script>
 <script>
 // ══════════════════════════════════════════════════════════════════════════════
 // HELPERS GLOBAUX — utilisés partout dans l'app
@@ -1011,6 +1015,45 @@ function escapeHTML(str) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
+}
+
+
+/** Appel sécurisé à la fonction serverless Claude
+ *  Injecte automatiquement le token Supabase courant dans Authorization
+ *  pour prouver que l'utilisateur est bien authentifié côté serveur */
+async function callClaude(payload) {
+  let authHeader = '';
+  try {
+    const { data: { session } } = await supa.auth.getSession();
+    if (session?.access_token) authHeader = 'Bearer ' + session.access_token;
+  } catch { /* pas de session — le serveur retournera 401 */ }
+
+  const res = await fetch('/.netlify/functions/claude', {
+    method: 'POST',
+    headers: {
+      'Content-Type':  'application/json',
+      'Authorization': authHeader,
+    },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) throw new Error(`API ${res.status}: ${await res.text()}`);
+  return res.json();
+}
+
+
+/** Merge sécurisé — copie uniquement les clés connues, bloque la pollution de prototype
+ *  Object.assign(target, untrusted) est dangereux si untrusted contient __proto__
+ *  Cette fonction ne copie que les clés explicitement déclarées dans allowedKeys */
+function safeMerge(target, source, allowedKeys) {
+  if (!source || typeof source !== 'object' || Array.isArray(source)) return;
+  for (const key of allowedKeys) {
+    if (Object.prototype.hasOwnProperty.call(source, key)
+        && key !== '__proto__'
+        && key !== 'constructor'
+        && key !== 'prototype') {
+      target[key] = source[key];
+    }
+  }
 }
 
 /** Raccourci getElementById — évite 150 répétitions */
@@ -1623,17 +1666,11 @@ JSON strict sans markdown.`;
   }
 
   try {
-    const res = await fetch('/.netlify/functions/claude',{
-      method:'POST',
-      headers:{'Content-Type':'application/json',},
-      body:JSON.stringify({
-        model:'claude-sonnet-4-20250514',
-        max_tokens:1500,
-        messages:[{role:'user', content: messageContent}]
-      })
+    const data = await callClaude({
+      model:'claude-sonnet-4-20250514',
+      max_tokens:1500,
+      messages:[{role:'user', content: messageContent}]
     });
-    if (!res.ok) throw new Error(`API ${res.status}: ${await res.text()}`);
-    const data = await res.json();
     let txt = data.content?.map(c=>c.text||'').join('')||'';
     txt = txt.replace(/```json|```/g,'').trim();
     const result = JSON.parse(txt);
@@ -2994,20 +3031,14 @@ Retourne UNIQUEMENT ce JSON strict :
 {"client":"nom client","date":"date si visible","objet":"objet des travaux","lignes":[{"p":"prestation","cat":"catégorie","u":"unité","q":12.5,"pu":22}],"montant_ttc":1500,"notes":"observations"}`;
 
       try {
-        const res = await fetch('/.netlify/functions/claude',{
-          method:'POST',
-          headers:{'Content-Type':'application/json',},
-          body:JSON.stringify({
-            model:'claude-sonnet-4-20250514',
-            max_tokens:1500,
-            messages:[{role:'user',content:[
-              {type:'image',source:{type:'base64',media_type:mediaType,data:base64}},
-              {type:'text',text:prompt}
-            ]}]
-          })
+        const data = await callClaude({
+          model:'claude-sonnet-4-20250514',
+          max_tokens:1500,
+          messages:[{role:'user',content:[
+            {type:'image',source:{type:'base64',media_type:mediaType,data:base64}},
+            {type:'text',text:prompt}
+          ]}]
         });
-        if (!res.ok) throw new Error(`API ${res.status}: ${await res.text()}`);
-    const data = await res.json();
         let txt = data.content?.map(c=>c.text||'').join('')||'';
         txt = txt.replace(/```json|```/g,'').trim();
         const imported = JSON.parse(txt);
@@ -3047,13 +3078,7 @@ CONTENU CSV :
 ${text.slice(0,3000)}`;
 
       try {
-        const res = await fetch('/.netlify/functions/claude',{
-          method:'POST',
-          headers:{'Content-Type':'application/json',},
-          body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:2000,messages:[{role:'user',content:prompt}]})
-        });
-        if (!res.ok) throw new Error(`API ${res.status}: ${await res.text()}`);
-    const data = await res.json();
+        const data = await callClaude({model:'claude-sonnet-4-20250514',max_tokens:2000,messages:[{role:'user',content:prompt}]});
         let txt = data.content?.map(c=>c.text||'').join('')||'';
         txt = txt.replace(/```json|```/g,'').trim();
         const parsed = JSON.parse(txt);
@@ -3368,13 +3393,8 @@ ${text.slice(0,3000)}`;
     }
 
     try {
-      const res = await fetch('/.netlify/functions/claude',{
-        method:'POST', headers:{'Content-Type':'application/json',},
-        body:JSON.stringify({model:'claude-sonnet-4-20250514', max_tokens:2000,
-          messages:[{role:'user', content:messageContent}]})
-      });
-      if (!res.ok) throw new Error(`API ${res.status}: ${await res.text()}`);
-    const data = await res.json();
+      const data = await callClaude({model:'claude-sonnet-4-20250514', max_tokens:2000,
+        messages:[{role:'user', content:messageContent}]});
       let txt = data.content?.map(c=>c.text||'').join('')||'';
       txt = txt.replace(/```json|```/g,'').trim();
       const parsed = JSON.parse(txt);
@@ -3535,6 +3555,9 @@ function creerAcompte(devisIdx) {
   const d = devisList[devisIdx];
   if (!d) return;
 
+  // Stocker l'index en variable de module — utilisé par selectAcomptePct()
+  _acompteDevisIdx = devisIdx;
+
   // Modal propre — plus de prompt() natif
   const ex = $('acompte-modal');
   if (ex) ex.remove();
@@ -3579,9 +3602,14 @@ function creerAcompte(devisIdx) {
   setTimeout(() => $('acompte-pct-input')?.focus(), 100);
 }
 
+// Index du devis courant dans la modale acompte — stocké proprement en variable de module
+// (remplace l'ancien sélecteur fragile document.querySelector('[onclick*="confirmerAcompte"]'))
+let _acompteDevisIdx = -1;
+
 function selectAcomptePct(pct) {
   $('acompte-pct-input').value = pct;
-  const d = devisList[parseInt(document.querySelector('[onclick*="confirmerAcompte"]')?.getAttribute('onclick')?.match(/\d+/)?.[0])];
+  // Utilise la variable de module — fiable, pas de scraping d'attribut onclick
+  const d = devisList[_acompteDevisIdx];
   if (d) $('acompte-montant-preview').textContent = fEuro(d.montant * pct / 100);
   document.querySelectorAll('.pct-btn').forEach(b => {
     const isActive = parseInt(b.dataset.pct) === pct;
@@ -3592,7 +3620,9 @@ function selectAcomptePct(pct) {
 }
 
 function confirmerAcompte(devisIdx) {
-  const d = devisList[devisIdx];
+  // devisIdx passé en paramètre OU fallback sur _acompteDevisIdx
+  const idx = (typeof devisIdx === 'number' && devisIdx >= 0) ? devisIdx : _acompteDevisIdx;
+  const d = devisList[idx];
   if (!d) return;
   const pct = parseFloat($('acompte-pct-input')?.value) || 30;
   if (pct <= 0 || pct > 100) { showToast('Pourcentage invalide (1–100)', 'err'); return; }
@@ -3834,7 +3864,16 @@ async function doAuth() {
 
   const {data, error} = await fn;
   btn.disabled = false;
-  if (error) { err.style.display='block'; err.textContent=error.message; btn.textContent=mode==='register'?'Créer mon compte':'Se connecter'; return; }
+  if (error) {
+    // Message générique — évite l'énumération d'emails (Supabase expose des détails différents
+    // selon que l'email existe ou non, ce qui permettrait de deviner les comptes enregistrés)
+    const msg = mode === 'register'
+      ? 'Impossible de créer le compte. Vérifiez vos informations.'
+      : 'Email ou mot de passe incorrect.';
+    err.style.display='block'; err.textContent=msg;
+    btn.textContent=mode==='register'?'Créer mon compte':'Se connecter';
+    return;
+  }
   if (mode==='register' && !data.session) { err.style.display='block'; err.style.background='#E8F8F0'; err.style.color='#2D8659'; err.textContent='Compte créé ! Vérifiez votre email pour confirmer.'; btn.textContent='Créer mon compte'; return; }
   onLogin(data.user);
 }
@@ -3844,7 +3883,7 @@ async function loginGoogle() {
     provider: 'google',
     options: { redirectTo: window.location.href }
   });
-  if (error) showToast('Erreur Google : ' + error.message, 'err');
+  if (error) showToast('Connexion Google impossible. Réessayez.', 'err');
 }
 
 async function doReset() {
@@ -3915,7 +3954,12 @@ async function onLogin(user) {
 }
 
 async function doLogout() {
-  await supa.auth.signOut();
+  try {
+    await supa.auth.signOut();
+  } catch (err) {
+    // signOut peut échouer si le réseau est coupé — on réinitialise quand même
+    console.error('signOut error (ignoré):', err.message);
+  }
   // Réinitialisation complète — aucune donnée du user précédent ne persiste
   currentUser        = null;
   devisList          = [];
@@ -3932,6 +3976,7 @@ async function doLogout() {
   _lastNum           = null;
   _lastClient        = null;
   _editableHTML      = null;
+  _acompteDevisIdx   = -1;
   currentPhotoBase64 = null;
   showAuthModal('login');
 }
@@ -3960,7 +4005,7 @@ async function chargerDonnees() {
 
   // Rentabilité
   const {data:rent} = await supa.from('rent_params').select('*').eq('user_id',uid).limit(1);
-  if (rent && rent.length) { Object.assign(rentParams, rent[0].params); statut_juridique = rent[0].statut_juridique || 'sarl_eurl'; }
+  if (rent && rent.length) { safeMerge(rentParams, rent[0].params, ['fournitures','urssaf','deplacement']); statut_juridique = rent[0].statut_juridique || 'sarl_eurl'; }
 
   // Tarifs
   const {data:tarifs} = await supa.from('tarifs_custom').select('*').eq('user_id',uid);
@@ -4041,34 +4086,6 @@ async function sauvegarder() {
   }
 }
 
-async function sauvegarderDevis(d) {
-  if (!currentUser) return;
-  const uid = currentUser.id;
-  try {
-    if (d._id) {
-      const {error} = await supa.from('devis').update({num:d.num,client:d.client,objet:d.objet,date:d.date,montant:d.montant,statut:d.statut,lignes:d.lignes,pieces:d.pieces||[]}).eq('id',d._id);
-      if (error) throw error;
-    } else {
-      const {data, error} = await supa.from('devis').insert({user_id:uid,num:d.num,client:d.client,objet:d.objet,date:d.date,montant:d.montant,statut:d.statut,lignes:d.lignes,pieces:d.pieces||[]}).select();
-      if (error) throw error;
-      if (data && data[0]) d._id = data[0].id;
-    }
-  } catch(err) {
-    console.error('Erreur sauvegarde devis:', err);
-    sauvegarderLocal();
-  }
-}
-
-async function supprimerDevisCloud(id) {
-  if (!currentUser || !id) return;
-  try {
-    const {error} = await supa.from('devis').delete().eq('id', id);
-    if (error) console.error('Erreur suppression devis:', error);
-  } catch(err) {
-    console.error('Erreur réseau suppression devis:', err);
-  }
-}
-
 // ── FALLBACK LOCALSTORAGE ─────────────────────────────────────────────────────
 const STORAGE_KEY = 'devispeint_pro_v1';
 const PROFILE_FIELDS = ['e-nom','e-dir','e-siret','e-adresse','e-tel','e-tva','e-validite','e-nextnum','e-conditions','e-footer'];
@@ -4092,8 +4109,13 @@ function restaurer() {
     if (data.devisList)      devisList    = data.devisList;
     if (data.facturesList)   facturesList = data.facturesList;
     if (data.FOURNISSEURS)   FOURNISSEURS = data.FOURNISSEURS;
-    if (data.PRIX_ACHAT_MAP) Object.assign(PRIX_ACHAT_MAP, data.PRIX_ACHAT_MAP);
-    if (data.rentParams)     Object.assign(rentParams, data.rentParams);
+    if (data.PRIX_ACHAT_MAP && typeof data.PRIX_ACHAT_MAP === 'object') {
+      // Copie clé par clé en filtrant __proto__ et autres clés dangereuses
+      for (const [k,v] of Object.entries(data.PRIX_ACHAT_MAP)) {
+        if (typeof k === 'string' && !['__proto__','constructor','prototype'].includes(k)) PRIX_ACHAT_MAP[k] = v;
+      }
+    }
+    if (data.rentParams)     safeMerge(rentParams, data.rentParams, ['fournitures','urssaf','deplacement']);
     if (data.statut_juridique) statut_juridique = data.statut_juridique;
     if (data.tarifs_custom)  data.tarifs_custom.forEach(tc=>{const t=TARIFS.find(x=>x.p===tc.p);if(t){t.prix=tc.prix;t.n=tc.n;}});
     if (data.profil)         _savedProfil = data.profil;
@@ -4113,26 +4135,6 @@ function toastSave() {
   t.textContent='💾 Sauvegardé';
   t.className='toast show';
   setTimeout(()=>t.className='toast',1800);
-}
-
-function resetData() {
-  // Modal de confirmation — plus de confirm() natif
-  const ex = $('confirm-modal');
-  if (ex) ex.remove();
-  const m = document.createElement('div');
-  m.id = 'confirm-modal';
-  m.className = 'modal-overlay';
-  m.innerHTML = `
-    <div style="background:#fff;border-radius:16px;padding:28px;width:100%;max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,.3);font-family:'Plus Jakarta Sans',sans-serif;">
-      <div style="font-size:40px;text-align:center;margin-bottom:14px;">⚠️</div>
-      <div style="font-family:'Playfair Display',serif;font-size:18px;text-align:center;margin-bottom:8px;">Effacer toutes les données ?</div>
-      <div style="font-size:13px;color:#999;text-align:center;margin-bottom:24px;">Cette action est irréversible. Toutes les données locales seront supprimées.</div>
-      <div style="display:flex;gap:8px;">
-        <button onclick="$('confirm-modal').remove()" style="flex:1;padding:11px;background:#F5F5F5;border:1.5px solid #E2DDD4;border-radius:9px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;">Annuler</button>
-        <button onclick="$('confirm-modal').remove();localStorage.removeItem('${STORAGE_KEY}');location.reload();" style="flex:1;padding:11px;background:var(--red);color:#fff;border:none;border-radius:9px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;">🗑️ Effacer</button>
-      </div>
-    </div>`;
-  document.body.appendChild(m);
 }
 
 // Sauvegarde automatique toutes les 60s — ID stocké pour annulation potentielle
