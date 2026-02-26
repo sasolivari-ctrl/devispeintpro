@@ -1086,7 +1086,7 @@ function genererPDF(doc, type = 'devis') {
           const note = ref ? ref.n : '';
           zoneRows += `<tr style="border-bottom:1px solid #EEE;">
             <td style="padding:7px 10px;">
-              <div style="font-weight:500;font-size:12px;">${l.p||''}</div>
+              <div style="font-weight:500;font-size:12px;">${escapeHTML(l.p||'')}</div>
               ${note ? `<div style="font-size:10px;color:#aaa;margin-top:1px;">${note}</div>` : ''}
             </td>
             <td style="padding:7px 10px;color:#aaa;font-size:12px;">${l.u||''}</td>
@@ -1096,14 +1096,14 @@ function genererPDF(doc, type = 'devis') {
           </tr>`;
         });
         if (zoneRows) {
-          pieceRows += `<tr><td colspan="5" style="padding:5px 10px 4px 18px;background:#F5F2EC;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:#888;border-left:3px solid #C8951E;">— ${zone.zone}</td></tr>`;
+          pieceRows += `<tr><td colspan="5" style="padding:5px 10px 4px 18px;background:#F5F2EC;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:#888;border-left:3px solid #C8951E;">— ${escapeHTML(zone.zone)}</td></tr>`;
           pieceRows += zoneRows;
         }
       });
       if (pieceRows) {
-        lignesHTML += `<tr><td colspan="5" style="padding:9px 10px;background:#111820;font-family:Georgia,serif;font-size:13px;font-weight:700;color:#C8951E;letter-spacing:.3px;">📍 ${piece.nom}</td></tr>`;
+        lignesHTML += `<tr><td colspan="5" style="padding:9px 10px;background:#111820;font-family:Georgia,serif;font-size:13px;font-weight:700;color:#C8951E;letter-spacing:.3px;">📍 ${escapeHTML(piece.nom)}</td></tr>`;
         lignesHTML += pieceRows;
-        lignesHTML += `<tr><td colspan="4" style="padding:6px 10px;text-align:right;font-size:11px;font-weight:700;color:#C8951E;background:#FDF8E8;border-top:1px solid #E8D06A;">Sous-total ${piece.nom}</td><td style="padding:6px 10px;text-align:right;font-weight:700;color:#C8951E;background:#FDF8E8;border-top:1px solid #E8D06A;">${pieceTotal.toFixed(2)} €</td></tr>`;
+        lignesHTML += `<tr><td colspan="4" style="padding:6px 10px;text-align:right;font-size:11px;font-weight:700;color:#C8951E;background:#FDF8E8;border-top:1px solid #E8D06A;">Sous-total ${escapeHTML(piece.nom)}</td><td style="padding:6px 10px;text-align:right;font-weight:700;color:#C8951E;background:#FDF8E8;border-top:1px solid #E8D06A;">${pieceTotal.toFixed(2)} €</td></tr>`;
       }
     });
 
@@ -1188,32 +1188,32 @@ function genererPDF(doc, type = 'devis') {
 
   const html = `<!DOCTYPE html>
 <html lang="fr"><head><meta charset="UTF-8">
-<title>${docNum} — ${docClient}</title>
+<title>${escapeHTML(docNum)} — ${escapeHTML(docClient)}</title>
 <style>${PDF_CSS}</style></head><body>
 <div class="header">
   <div>
-    <div class="company">${e.nom}</div>
-    ${e.dir    ?`<div class="meta">${e.dir}</div>`:''}
-    ${e.adresse?`<div class="meta">${e.adresse}</div>`:''}
-    ${e.tel    ?`<div class="meta">${e.tel}</div>`:''}
-    ${e.siret  ?`<div class="meta">SIRET : ${e.siret}</div>`:''}
+    <div class="company">${escapeHTML(e.nom)}</div>
+    ${e.dir    ?`<div class="meta">${escapeHTML(e.dir)}</div>`:''}
+    ${e.adresse?`<div class="meta">${escapeHTML(e.adresse)}</div>`:''}
+    ${e.tel    ?`<div class="meta">${escapeHTML(e.tel)}</div>`:''}
+    ${e.siret  ?`<div class="meta">SIRET : ${escapeHTML(e.siret)}</div>`:''}
   </div>
   <div style="text-align:right;">
-    <div class="doc-num">${docNum}</div>
+    <div class="doc-num">${escapeHTML(docNum)}</div>
     ${badgeLabel?`<div class="doc-badge">${badgeLabel}</div>`:''}
     <div class="meta" style="margin-top:6px;">Établi le ${docDate}</div>
     ${expStr   ?`<div class="meta">Valable jusqu'au ${expStr}</div>`:''}
-    ${doc.devisNum?`<div class="meta">Réf. devis : ${doc.devisNum}</div>`:''}
+    ${doc.devisNum?`<div class="meta">Réf. devis : ${escapeHTML(doc.devisNum)}</div>`:''}
   </div>
 </div>
 <div class="client-block">
   <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#aaa;margin-bottom:6px;">Client</div>
-  <div class="client-name">${docClient}</div>
-  ${doc.adresse||''?`<div class="client-info">${doc.adresse||''}</div>`:''}
+  <div class="client-name">${escapeHTML(docClient)}</div>
+  ${doc.adresse?`<div class="client-info">${escapeHTML(doc.adresse)}</div>`:''}
   ${isDevis && ($('c-tel')?.value || $('c-email')?.value)
     ? `<div class="client-info">${[$('c-tel')?.value,$('c-email')?.value].filter(Boolean).join(' · ')}</div>` : ''}
 </div>
-<div class="objet">Objet : ${docObjet}</div>
+<div class="objet">Objet : ${escapeHTML(docObjet)}</div>
 ${isAcompte
   ? `<table><thead><tr><th>Description</th><th style="text-align:right;">Montant TTC</th></tr></thead><tbody>${lignesHTML}</tbody></table>`
   : `<table><thead><tr>
@@ -1223,9 +1223,9 @@ ${isAcompte
 }
 ${totauxHTML}
 <div class="doc-footer">
-  ${isDevis ? `Devis valable ${e.validite} jours — ` : ''}${e.nom}${e.siret?' — SIRET '+e.siret:''}<br>
-  ${e.conditions ? e.conditions + '<br>' : ''}
-  ${e.footer ? e.footer.replace(/\n/g,'<br>') + '<br>' : ''}
+  ${isDevis ? `Devis valable ${escapeHTML(e.validite)} jours — ` : ''}${escapeHTML(e.nom)}${e.siret?' — SIRET '+escapeHTML(e.siret):''}<br>
+  ${e.conditions ? escapeHTML(e.conditions).replace(/\n/g,'<br>') + '<br>' : ''}
+  ${e.footer ? escapeHTML(e.footer).replace(/\n/g,'<br>') + '<br>' : ''}
   ${isDevis ? 'Ce document vaut acceptation des conditions générales de vente.' : ''}
 </div>
 <button class="btn-print" onclick="window.print()">🖨️ Imprimer / Enregistrer en PDF</button>
@@ -1365,8 +1365,8 @@ function rowHTML(d, showActions) {
       <button class="btn-action btn-action-ok"   onclick="event.stopPropagation();envoyerEmail(${idx})">✉️ Envoyer</button>
     </div>` : '';
   return `<tr onclick="showRentDevis(${idx})" style="cursor:pointer;">
-    <td><div class="devis-num">${d.num}</div></td>
-    <td><div class="devis-client">${d.client}</div><div class="devis-objet">${d.objet||''}</div>${actions}</td>
+    <td><div class="devis-num">${escapeHTML(d.num)}</div></td>
+    <td><div class="devis-client">${escapeHTML(d.client)}</div><div class="devis-objet">${escapeHTML(d.objet||'')}</div>${actions}</td>
     <td style="color:#aaa;font-size:12px;">${d.date}</td>
     <td><span class="badge ${bc[d.statut]||'b-wait'}">${d.statut}</span></td>
     <td class="devis-amount">${fEuro(d.montant)}</td>
@@ -1877,11 +1877,11 @@ function _buildPreviewHeader(result) {
     <div class="dv-header">
       <div class="dv-top">
         <div>
-          <div class="dv-company">${e.nom}</div>
-          ${e.dir    ?`<div class="dv-meta">${e.dir}</div>`:''}
-          ${e.adresse?`<div class="dv-meta">${e.adresse}</div>`:''}
-          ${e.tel    ?`<div class="dv-meta">${e.tel}</div>`:''}
-          ${e.siret  ?`<div class="dv-meta">SIRET : ${e.siret}</div>`:''}
+          <div class="dv-company">${escapeHTML(e.nom)}</div>
+          ${e.dir    ?`<div class="dv-meta">${escapeHTML(e.dir)}</div>`:''}
+          ${e.adresse?`<div class="dv-meta">${escapeHTML(e.adresse)}</div>`:''}
+          ${e.tel    ?`<div class="dv-meta">${escapeHTML(e.tel)}</div>`:''}
+          ${e.siret  ?`<div class="dv-meta">SIRET : ${escapeHTML(e.siret)}</div>`:''}
         </div>
         <div style="text-align:right;">
           <div class="dv-num">${nextNum}</div>
@@ -1986,7 +1986,7 @@ function _renderDevisTable() {
 
     // Sous-total pièce
     tableRows += `<tr class="dv-piece-subtotal">
-      <td colspan="4">Sous-total ${piece.nom}</td>
+      <td colspan="4">Sous-total ${escapeHTML(piece.nom)}</td>
       <td id="sub-${pi}">${fEuro(pieceTotal)}</td>
     </tr>`;
   });
@@ -2416,7 +2416,7 @@ function renderRentHistory(accepted) {
     const barW = maxBenef > 0 ? Math.round(c.benef/maxBenef*100) : 0;
     const barColor = c.margin >= 40 ? '#6FCF97' : c.margin >= 25 ? '#F5C842' : '#F97676';
     return `<tr>
-      <td><div style="font-weight:600;font-size:13px;">${d.client}</div><div style="font-size:11px;color:#aaa;">${d.num}</div></td>
+      <td><div style="font-weight:600;font-size:13px;">${escapeHTML(d.client)}</div><div style="font-size:11px;color:#aaa;">${escapeHTML(d.num)}</div></td>
       <td style="font-weight:600;">${fEuro(d.montant)}</td>
       <td style="font-weight:700;color:${barColor};">${fEuro(c.benef)}</td>
       <td style="font-weight:700;color:${barColor};">${c.margin.toFixed(0)}%</td>
@@ -2784,7 +2784,7 @@ function renderImportExport() {
       ${devisList.map((d,i) => `
         <button class="ie-select-btn ${i===ieExportDevisIdx?'active':''}"
           onclick="ieExportDevisIdx=${i};renderImportExport()">
-          ${d.num} — ${d.client}
+          ${escapeHTML(d.num)} — ${escapeHTML(d.client)}
         </button>`).join('')}
       <button class="ie-select-btn ${ieExportDevisIdx===-1?'active':''}"
         onclick="ieExportDevisIdx=-1;renderImportExport()">
@@ -3430,7 +3430,7 @@ window.addEventListener('beforeprint', function() {
     printRows += `<tr class="dv-piece-header"><td colspan="5">${piece.nom}</td></tr>`;
     piece.zones.forEach(zone => {
       if (!zone.lignes.length) return;
-      printRows += `<tr class="dv-zone-header"><td colspan="5">— ${zone.zone}</td></tr>`;
+      printRows += `<tr class="dv-zone-header"><td colspan="5">— ${escapeHTML(zone.zone)}</td></tr>`;
       zone.lignes.forEach(l => {
         if (!l.p && !l.q) return;
         const pu   = parseFloat(l.pu) || 0;
@@ -3441,7 +3441,7 @@ window.addEventListener('beforeprint', function() {
         const ref  = TARIFS.find(x => x.p === l.p);
         const note = ref ? ref.n : '';
         printRows += `<tr class="dv-prestation">
-          <td><div class="dv-prest-name">${l.p||''}</div>${note?`<div class="dv-prest-note">${note}</div>`:''}</td>
+          <td><div class="dv-prest-name">${escapeHTML(l.p||'')}</div>${note?`<div class="dv-prest-note">${note}</div>`:''}</td>
           <td style="color:#aaa;">${l.u||''}</td>
           <td style="color:#aaa;">${q%1===0?q:q.toFixed(1)}</td>
           <td style="text-align:right;color:#888;">${fEuro(pu)}</td>
@@ -3449,7 +3449,7 @@ window.addEventListener('beforeprint', function() {
         </tr>`;
       });
     });
-    printRows += `<tr class="dv-piece-subtotal"><td colspan="4">Sous-total ${piece.nom}</td><td>${fEuro(pieceTotal)}</td></tr>`;
+    printRows += `<tr class="dv-piece-subtotal"><td colspan="4">Sous-total ${escapeHTML(piece.nom)}</td><td>${fEuro(pieceTotal)}</td></tr>`;
   });
 
   const forfait = sousTotal * 0.10;
@@ -3498,8 +3498,8 @@ function renderFactures() {
   const typeSt    = t => t === 'Acompte' ? 'background:#E8F0FE;color:#1A73E8;' : 'background:#E2F0EC;color:#1A6B57;';
   tbody.innerHTML = facturesList.map((f, i) => `
     <tr>
-      <td><div class="devis-num">${f.num}</div>${f.devisNum?`<div style="font-size:10px;color:#aaa;">Devis : ${f.devisNum}</div>`:''}</td>
-      <td><div class="devis-client">${f.client}</div></td>
+      <td><div class="devis-num">${escapeHTML(f.num)}</div>${f.devisNum?`<div style="font-size:10px;color:#aaa;">Devis : ${escapeHTML(f.devisNum)}</div>`:''}</td>
+      <td><div class="devis-client">${escapeHTML(f.client)}</div></td>
       <td><span class="badge" style="${typeSt(f.type)}">${f.type||'Facture'}</span></td>
       <td style="color:#aaa;font-size:12px;">${f.date}</td>
       <td><span class="badge ${bc[f.statut]||'b-wait'}">${f.statut}</span></td>
@@ -3545,7 +3545,7 @@ function creerAcompte(devisIdx) {
   m.innerHTML = `
     <div style="background:#fff;border-radius:16px;padding:28px;width:100%;max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,.3);font-family:'Plus Jakarta Sans',sans-serif;">
       <div style="font-family:'Playfair Display',serif;font-size:18px;margin-bottom:6px;">💰 Facture d'acompte</div>
-      <div style="font-size:13px;color:#999;margin-bottom:20px;">Devis ${d.num} — ${d.client} (${fEuro(d.montant)})</div>
+      <div style="font-size:13px;color:#999;margin-bottom:20px;">Devis ${escapeHTML(d.num)} — ${escapeHTML(d.client)} (${fEuro(d.montant)})</div>
       <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
         ${[20,30,40,50].map(p=>`<button onclick="selectAcomptePct(${p})" class="pct-btn" data-pct="${p}" style="flex:1;padding:10px;border-radius:9px;font-size:14px;font-weight:700;cursor:pointer;border:2px solid #E2DDD4;background:var(--cream);transition:all .2s;">${p}%</button>`).join('')}
       </div>
@@ -3643,8 +3643,8 @@ function afficherModalEmail(doc, type) {
 
   const e    = getProfilInfo();
   const sujetDefaut = type === 'devis'
-    ? `Votre devis ${doc.num} — ${e.nom}`
-    : `Votre ${doc.type==='Acompte'?"facture d'acompte":'facture'} ${doc.num} — ${e.nom}`;
+    ? `Votre devis ${escapeHTML(doc.num)} — ${escapeHTML(e.nom)}`
+    : `Votre ${doc.type==='Acompte'?"facture d'acompte":'facture'} ${escapeHTML(doc.num)} — ${escapeHTML(e.nom)}`;
   const texteDefaut = type === 'devis'
     ? `Bonjour ${doc.client},\n\nVeuillez trouver ci-joint votre devis n°${doc.num} pour les travaux : ${doc.objet||'travaux de peinture'}.\n\nCe devis est valable ${e.validite} jours. N'hésitez pas à me contacter pour toute question.\n\nCordialement,\n${e.nom}`
     : `Bonjour ${doc.client},\n\nVeuillez trouver ci-joint votre ${doc.type==='Acompte'?"facture d'acompte":'facture'} n°${doc.num} d'un montant de ${fEuro(doc.montant)}.\n\nMerci de procéder au règlement selon les conditions convenues.\n\nCordialement,\n${e.nom}`;
