@@ -1,11 +1,24 @@
 [build]
   functions = "netlify/functions"
-  publish = "."
-
-[build.environment]
-  NODE_VERSION = "18"
 
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
+
+# ── HEADERS DE SÉCURITÉ ────────────────────────────────────────────────────────
+[[headers]]
+  for = "/*"
+  [headers.values]
+    # Empêche le clickjacking (chargement dans une iframe depuis un autre domaine)
+    X-Frame-Options = "DENY"
+    # Empêche le sniffing de type MIME
+    X-Content-Type-Options = "nosniff"
+    # Force HTTPS (1 an, inclut sous-domaines)
+    Strict-Transport-Security = "max-age=31536000; includeSubDomains"
+    # Contrôle les infos envoyées dans le Referer
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    # Désactive les fonctionnalités browser non nécessaires
+    Permissions-Policy = "camera=(), microphone=(self), geolocation=(), payment=()"
+    # Content Security Policy — restreint les sources autorisées
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://ixvlgangapkavnjiurlt.supabase.co https://api.anthropic.com; img-src 'self' data: blob:; frame-ancestors 'none';"
