@@ -2028,31 +2028,31 @@ function _renderDevisTable() {
         const noteDefaut = l.note !== undefined ? l.note : (refTarif ? refTarif.n : '');
 
         zoneRows += `<tr class="dv-prestation">
-          <td>
+          <td style="vertical-align:top;">
             <input class="dv-edit-cell" value="${(l.p||'').replace(/"/g,'&quot;')}"
               oninput="_devisModel.pieces[${pi}].zones[${zi}].lignes[${li}].p=this.value"
               placeholder="Nom de la prestation">
             <input class="dv-edit-cell" value="${(noteDefaut||'').replace(/"/g,'&quot;')}"
               oninput="_devisModel.pieces[${pi}].zones[${zi}].lignes[${li}].note=this.value"
-              placeholder="Descriptif / note (optionnel)"
-              style="font-size:10px;color:#aaa;margin-top:3px;width:100%;">
+              placeholder="Descriptif (optionnel)"
+              style="font-size:10px;color:#aaa;margin-top:2px;width:100%;padding:2px 4px;">
           </td>
-          <td>
+          <td style="vertical-align:top;">
             <input class="dv-edit-cell dv-edit-num" value="${l.u||'m2'}"
               oninput="_devisModel.pieces[${pi}].zones[${zi}].lignes[${li}].u=this.value"
               style="width:55px;" placeholder="m2">
           </td>
-          <td>
+          <td style="vertical-align:top;">
             <input class="dv-edit-cell dv-edit-num" type="number" value="${q||''}"
               oninput="_devisModel.pieces[${pi}].zones[${zi}].lignes[${li}].q=parseFloat(this.value)||0;_refreshTotals()"
               placeholder="0">
           </td>
-          <td>
+          <td style="vertical-align:top;">
             <input class="dv-edit-cell dv-edit-pu" type="number" value="${pu||''}"
               oninput="_devisModel.pieces[${pi}].zones[${zi}].lignes[${li}].pu=parseFloat(this.value)||0;_refreshTotals()"
               placeholder="0">
           </td>
-          <td style="text-align:right;display:flex;align-items:center;gap:4px;justify-content:flex-end;">
+          <td style="text-align:right;vertical-align:top;display:flex;align-items:flex-start;gap:4px;justify-content:flex-end;padding-top:10px;">
             <span id="mont-${pi}-${zi}-${li}" style="font-weight:700;">${fEuro(mont)}</span>
             <button class="btn-del-row" onclick="delLigne(${pi},${zi},${li})" title="Supprimer">✕</button>
           </td>
@@ -4129,10 +4129,11 @@ async function sauvegarder() {
     toastSave();
 
   } catch (err) {
-    console.error('Erreur sauvegarde cloud:', err);
+    const msg = err?.message || err?.details || JSON.stringify(err) || 'Erreur inconnue';
+    console.error('Erreur sauvegarde cloud — détails:', msg, err);
     // Fallback silencieux : on sauvegarde localement pour ne pas perdre les données
     sauvegarderLocal();
-    showToast('⚠️ Sauvegarde locale (erreur réseau)', 'err');
+    showToast('⚠️ Sauvegarde locale — ouvrez la console (F12) pour voir l\'erreur', 'err');
   }
 }
 
