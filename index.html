@@ -2221,11 +2221,15 @@ function addZone(pi) {
 
 function saveDevis(num, client, objet, ttc, lignes) {
   const today = new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'});
-  devisList.unshift({num, client, objet, date:today, montant:ttc, statut:'En attente', lignes: lignes||[]});
+  // Inclure pieces pour pouvoir rouvrir le devis correctement
+  const pieces = _devisModel?.pieces || [];
+  devisList.unshift({num, client, objet, date:today, montant:ttc, statut:'En attente', lignes: lignes||[], pieces});
   const btn = $('btn-save-dv');
   if (btn) { btn.textContent='✓ Enregistré'; btn.className='btn-dv btn-dv-saved'; }
   renderDashboard();
   showToast(num + ' enregistré ✓','ok');
+  // Sauvegarder immédiatement dans Supabase (ou localStorage en fallback)
+  sauvegarder();
 }
 
 // ── PROFIL ────────────────────────────────────────────────────────────────────
