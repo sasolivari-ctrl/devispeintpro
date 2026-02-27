@@ -1128,7 +1128,7 @@ function genererPDF(doc, type = 'devis') {
           pieceTotal += mont;
           sousTotal  += mont;
           const ref  = TARIFS.find(x => x.p === l.p);
-          const note = ref ? ref.n : '';
+          const note = l.note !== undefined ? l.note : (ref ? ref.n : '');
           zoneRows += `<tr style="border-bottom:1px solid #EEE;">
             <td style="padding:7px 10px;">
               <div style="font-weight:500;font-size:12px;">${escapeHTML(l.p||'')}</div>
@@ -2023,11 +2023,19 @@ function _renderDevisTable() {
         sousTotal  += mont;
         allLignes.push(l);
 
+        // Note/descriptif — depuis le tarif de référence ou note manuelle sur la ligne
+        const refTarif = TARIFS.find(x => x.p === l.p);
+        const noteDefaut = l.note !== undefined ? l.note : (refTarif ? refTarif.n : '');
+
         zoneRows += `<tr class="dv-prestation">
           <td>
             <input class="dv-edit-cell" value="${(l.p||'').replace(/"/g,'&quot;')}"
               oninput="_devisModel.pieces[${pi}].zones[${zi}].lignes[${li}].p=this.value"
               placeholder="Nom de la prestation">
+            <input class="dv-edit-cell" value="${(noteDefaut||'').replace(/"/g,'&quot;')}"
+              oninput="_devisModel.pieces[${pi}].zones[${zi}].lignes[${li}].note=this.value"
+              placeholder="Descriptif / note (optionnel)"
+              style="font-size:10px;color:#aaa;margin-top:3px;width:100%;">
           </td>
           <td>
             <input class="dv-edit-cell dv-edit-num" value="${l.u||'m2'}"
@@ -3501,7 +3509,7 @@ window.addEventListener('beforeprint', function() {
         pieceTotal += mont;
         sousTotal  += mont;
         const ref  = TARIFS.find(x => x.p === l.p);
-        const note = ref ? ref.n : '';
+        const note = l.note !== undefined ? l.note : (ref ? ref.n : '');
         printRows += `<tr class="dv-prestation">
           <td><div class="dv-prest-name">${escapeHTML(l.p||'')}</div>${note?`<div class="dv-prest-note">${note}</div>`:''}</td>
           <td style="color:#aaa;">${l.u||''}</td>
