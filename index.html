@@ -1409,7 +1409,7 @@ function rowHTML(d, showActions) {
       <button class="btn-action btn-action-gray" onclick="event.stopPropagation();creerAcompte(${idx})">💰 Acompte</button>
       <button class="btn-action btn-action-ok"   onclick="event.stopPropagation();envoyerEmail(${idx})">✉️ Envoyer</button>
     </div>` : '';
-  return `<tr onclick="showRentDevis(${idx})" style="cursor:pointer;">
+  return `<tr onclick="ouvrirDevis(${idx})" style="cursor:pointer;">
     <td><div class="devis-num">${escapeHTML(d.num)}</div></td>
     <td><div class="devis-client">${escapeHTML(d.client)}</div><div class="devis-objet">${escapeHTML(d.objet||'')}</div>${actions}</td>
     <td style="color:#aaa;font-size:12px;">${d.date}</td>
@@ -1423,6 +1423,42 @@ function changeStatut(idx, statut) {
   renderHistorique();
   renderDashboard();
   showToast('Statut mis à jour : ' + statut, statut==='Accepté'?'ok':'');
+}
+
+/** Ouvre un devis existant dans la vue "Nouveau devis" pour le consulter/modifier/imprimer */
+function ouvrirDevis(idx) {
+  const d = devisList[idx];
+  if (!d) return;
+
+  // Pré-remplir les champs client
+  if ($('c-nom'))    $('c-nom').value    = d.client || '';
+  if ($('c-objet'))  $('c-objet').value  = d.objet  || '';
+  if ($('c-adresse')) $('c-adresse').value = d.adresse || '';
+
+  // Mémoriser le num et client pour l'impression
+  _lastNum    = d.num;
+  _lastClient = d.client;
+
+  // Charger le devis dans renderPreview — utilise pieces si disponible, sinon lignes
+  const result = {
+    pieces:         d.pieces && d.pieces.length ? d.pieces : null,
+    lignes:         d.lignes  || [],
+    interpretation: `Devis ${d.num} — ${d.client}`,
+    _source:        'texte',
+    // Forcer le numéro existant sans l'incrémenter
+    _existingNum:   d.num,
+    _existingDate:  d.date,
+  };
+
+  showView('nouveau');
+  // Laisser le DOM se mettre en place avant de rendre
+  setTimeout(() => {
+    renderPreview(result);
+    // Rétablir le numéro d'origine (renderPreview l'incrémente sinon)
+    if ($('e-nextnum')) $('e-nextnum').value = d.num;
+    _lastNum = d.num;
+    window.scrollTo({top: 0, behavior: 'smooth'});
+  }, 80);
 }
 
 function showRentDevis(idx) {
