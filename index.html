@@ -162,7 +162,7 @@ textarea.inp{min-height:130px;resize:vertical;line-height:1.7;}
 
 .dv-interp{background:var(--cream);border-radius:8px;padding:10px 12px;font-size:12px;color:#777;line-height:1.6;margin-bottom:12px;font-style:italic;}
 
-.dv-table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:12px;}
+.dv-table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:12px;table-layout:fixed;}
 .dv-table th{background:var(--ink2);color:var(--gold-lt);padding:7px 10px;text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.5px;font-weight:700;}
 .dv-table th:last-child{text-align:right;}
 .dv-table td{padding:8px 10px;border-bottom:1px solid var(--cream2);color:var(--ink);vertical-align:top;}
@@ -2065,7 +2065,7 @@ function _renderDevisTable() {
               oninput="_devisModel.pieces[${pi}].zones[${zi}].lignes[${li}].pu=parseFloat(this.value)||0;_refreshTotals()"
               placeholder="0">
           </td>
-          <td style="text-align:right;vertical-align:top;display:flex;align-items:flex-start;gap:4px;justify-content:flex-end;padding-top:10px;">
+          <td style="text-align:right;vertical-align:top;white-space:nowrap;">
             <span id="mont-${pi}-${zi}-${li}" style="font-weight:700;">${fEuro(mont)}</span>
             <button class="btn-del-row" onclick="delLigne(${pi},${zi},${li})" title="Supprimer">✕</button>
           </td>
@@ -2142,10 +2142,11 @@ function _renderDevisTable() {
     <div style="overflow-x:auto;">
       <table class="dv-table" id="dv-main-table">
         <thead><tr>
-          <th style="width:38%;">Prestation</th>
-          <th>Unité</th><th>Qté</th>
-          <th style="text-align:right;">Prix unit.</th>
-          <th style="text-align:right;">Total HT</th>
+          <th style="width:42%;">Prestation</th>
+          <th style="width:10%;">Unité</th>
+          <th style="width:12%;">Qté</th>
+          <th style="width:16%;text-align:right;">Prix unit.</th>
+          <th style="width:16%;text-align:right;">Total HT</th>
         </tr></thead>
         <tbody id="dv-tbody">${tableRows}</tbody>
       </table>
