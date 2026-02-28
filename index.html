@@ -1346,7 +1346,11 @@ function showView(name) {
   if (name === 'historique')    renderHistorique();
   if (name === 'dashboard')     renderDashboard();
   if (name === 'tarifs')        renderTarifs();
-  if (name === 'rentabilite')   renderRentabilite();
+  if (name === 'rentabilite') { 
+    // Reset seulement si pas de devis explicitement sélectionné via clic
+    if (!_currentRentDevis) _currentRentDevis = devisList[0] || null;
+    renderRentabilite(); 
+  }
   if (name === 'import-export') renderImportExport();
   if (name === 'fournisseurs')  renderFournisseurs();
   if (name === 'fournitures')   renderFournitures();
@@ -1401,10 +1405,13 @@ function renderDashboard() {
 function rowHTML(d, showActions) {
   const bc  = {Accepté:'b-ok','En attente':'b-wait',Refusé:'b-no'};
   const idx = devisList.indexOf(d);
-  const actions = showActions ? `
+  // Si Refusé : aucun bouton d'action
+  // Si Accepté : uniquement Facture, Acompte, Envoyer (pas de bouton Refusé)
+  // Si En attente : tous les boutons sauf Accepté déjà cliqué
+  const actions = showActions && d.statut !== 'Refusé' ? `
     <div style="display:flex;gap:6px;margin-top:5px;flex-wrap:wrap;">
       ${d.statut!=='Accepté'?`<button class="btn-action btn-action-ok"    onclick="event.stopPropagation();changeStatut(${idx},'Accepté')">✓ Accepté</button>`:''}
-      ${d.statut!=='Refusé' ?`<button class="btn-action btn-action-refuse" onclick="event.stopPropagation();changeStatut(${idx},'Refusé')">✗ Refusé</button>`:''}
+      ${d.statut==='En attente'?`<button class="btn-action btn-action-refuse" onclick="event.stopPropagation();changeStatut(${idx},'Refusé')">✗ Refusé</button>`:''}
       <button class="btn-action btn-action-gold" onclick="event.stopPropagation();convertirEnFacture(${idx})">🧾 Facture</button>
       <button class="btn-action btn-action-gray" onclick="event.stopPropagation();creerAcompte(${idx})">💰 Acompte</button>
       <button class="btn-action btn-action-ok"   onclick="event.stopPropagation();envoyerEmail(${idx})">✉️ Envoyer</button>
@@ -1424,6 +1431,9 @@ function changeStatut(idx, statut) {
   renderDashboard();
   showToast('Statut mis à jour : ' + statut, statut==='Accepté'?'ok':'');
 }
+
+/** Flag — indique qu'on ouvre un devis existant, pas un nouveau */
+let _isOpeningExisting = false;
 
 /** Ouvre un devis existant dans la vue "Nouveau devis" pour le consulter/modifier/imprimer */
 function ouvrirDevis(idx) {
@@ -1453,8 +1463,9 @@ function ouvrirDevis(idx) {
   showView('nouveau');
   // Laisser le DOM se mettre en place avant de rendre
   setTimeout(() => {
+    _isOpeningExisting = true;   // bloquer l'incrémentation du numéro
     renderPreview(result);
-    // Rétablir le numéro d'origine (renderPreview l'incrémente sinon)
+    _isOpeningExisting = false;  // rétablir pour les nouveaux devis
     if ($('e-nextnum')) $('e-nextnum').value = d.num;
     _lastNum = d.num;
     window.scrollTo({top: 0, behavior: 'smooth'});
@@ -1464,7 +1475,7 @@ function ouvrirDevis(idx) {
 function showRentDevis(idx) {
   const d = devisList[idx];
   if (!d) return;
-  _currentRentDevis = d; // mémorise le devis sélectionné
+  _currentRentDevis = d; // force la mise à jour avec ce devis
   showView('rentabilite');
   setTimeout(() => {
     const card = $('rent-result-card');
@@ -1935,11 +1946,13 @@ function _buildPreviewHeader(result) {
   _devisModel.tvaR     = e.tvaR;
   _devisModel.objet    = c.objet;
 
-  // Incrémenter le numéro de devis
-  const parts = nextNum.split('-');
-  const n = parseInt(parts[parts.length-1]||'0');
-  parts[parts.length-1] = String(n+1).padStart(3,'0');
-  $('e-nextnum').value = parts.join('-');
+  // Incrémenter le numéro de devis — seulement pour un nouveau devis (pas si on rouvre un existant)
+  if (!_isOpeningExisting) {
+    const parts = nextNum.split('-');
+    const n = parseInt(parts[parts.length-1]||'0');
+    parts[parts.length-1] = String(n+1).padStart(3,'0');
+    $('e-nextnum').value = parts.join('-');
+  }
 
   const dateStr = new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'});
   const expStr  = new Date(Date.now()+parseInt(e.validite)*86400000)
@@ -2286,9 +2299,10 @@ function renderRentabilite() {
   const accepted = devisList.filter(d => d.statut === 'Accepté');
   const caTotal  = accepted.reduce((s,d) => s+d.montant, 0);
 
-  // Ne jamais écraser le devis en cours si déjà défini par l'utilisateur
+  // Toujours utiliser le devis sélectionné ou le dernier de la liste par défaut
   if (!_currentRentDevis) {
-    _currentRentDevis = getCurrentRentDevis();
+    // Prendre le dernier devis enregistré (le plus récent)
+    _currentRentDevis = devisList[0] || getCurrentRentDevis();
   }
   const exDevis = _currentRentDevis;
   const calc = calcRent(exDevis.montant);
