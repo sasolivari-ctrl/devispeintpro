@@ -1030,7 +1030,7 @@ async function callClaude(payload) {
     if (session?.access_token) authHeader = 'Bearer ' + session.access_token;
   } catch { /* pas de session — le serveur retournera 401 */ }
 
-  const res = await fetch('/.netlify/functions/claude', {
+  const res = await fetch('/functions/claude', {
     method: 'POST',
     headers: {
       'Content-Type':  'application/json',
