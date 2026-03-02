@@ -1202,11 +1202,9 @@ function genererPDF(doc, type = 'devis') {
     const prestHT = sousTotal / 1.10; // sousTotal inclut le forfait
     totauxHTML = `<div class="totaux"><div class="totaux-inner">
       <div class="tot-row"><span>Total HT prestations</span><span>${prestHT.toFixed(2)} €</span></div>
-      <div class="tot-row"><span>Déplacement (10%)</span><span>${(prestHT*0.1).toFixed(2)} €</span></div>
       <div class="tot-row"><span>Total HT</span><span>${totalHT.toFixed(2)} €</span></div>
       <div class="tot-row"><span>TVA (${Math.round(e.tvaR*100)}%)</span><span>${tva.toFixed(2)} €</span></div>
       <div class="tot-row ttc"><span>TOTAL TTC</span><span>${ttc.toFixed(2)} €</span></div>
-      <div class="tot-row acompte"><span>Acompte suggéré (30%)</span><span>${acompte30.toFixed(2)} €</span></div>
     </div></div>`;
   }
 
@@ -2622,7 +2620,7 @@ function rentResultHTML(devis, c) {
     <div class="rent-margin-label" style="margin-top:8px;">${marginLabel} — Marge nette : <strong style="color:${marginColor};">${c.margin.toFixed(1)}%</strong></div>
     <div style="margin-top:14px;padding:10px 14px;background:var(--gold-pale);border-radius:8px;border:1px solid var(--gold-lt);display:flex;justify-content:space-between;align-items:center;">
       <span style="font-size:12px;color:var(--gold);font-weight:600;">💰 Acompte suggéré (30%)</span>
-      <strong style="color:var(--gold);font-size:15px;">${fEuro(exDevis.montant * 0.30)}</strong>
+      <strong style="color:var(--gold);font-size:15px;">${fEuro(devis.montant * 0.30)}</strong>
     </div>
   `;
 }
