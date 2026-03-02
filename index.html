@@ -953,6 +953,7 @@ textarea.inp{min-height:130px;resize:vertical;line-height:1.7;}
               </div>
             </div>
             <button class="btn-save" onclick="saveProfil()">💾 Enregistrer</button>
+            <button class="btn-save" style="background:var(--cream);color:var(--ink);border:1.5px solid var(--cream2);margin-left:10px;" onclick="changerMotDePasse()">🔑 Changer mot de passe</button>
           </div>
         </div>
       </div>
@@ -2265,6 +2266,20 @@ function updateSidebar() {
   $('sb-logo-display').textContent = nom ? nom.charAt(0).toUpperCase() : 'P';
 }
 function saveProfil() { updateSidebar(); showToast('Profil enregistré ✓','ok'); }
+
+async function changerMotDePasse() {
+  const email = currentUser?.email;
+  if (!email) { showToast('Vous devez être connecté','err'); return; }
+  try {
+    const { error } = await supa.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin + '/#type=recovery'
+    });
+    if (error) throw error;
+    showToast('Email de réinitialisation envoyé à ' + email, 'ok');
+  } catch(err) {
+    showToast('Erreur : ' + err.message, 'err');
+  }
+}
 
 function previewLogo(input) {
   const file = input.files[0];
