@@ -165,7 +165,7 @@ textarea.inp{min-height:130px;resize:vertical;line-height:1.7;}
 .dv-table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:12px;}
 .dv-table th{background:var(--ink2);color:var(--gold-lt);padding:7px 10px;text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.5px;font-weight:700;}
 .dv-table th:last-child{text-align:right;}
-.dv-table td{padding:8px 10px;border-bottom:1px solid var(--cream2);color:var(--ink);vertical-align:top;}
+.dv-table td{padding:8px 10px;border-bottom:1px solid var(--cream2);color:var(--ink);vertical-align:middle;}
 .dv-table td:last-child{text-align:right;font-weight:600;white-space:nowrap;}
 .dv-table tr:hover td{background:var(--gold-pale);}
 .dv-piece-header td{
@@ -2048,23 +2048,27 @@ function _renderDevisTable() {
         const refTarif = TARIFS.find(x => x.p === l.p);
         const noteDefaut = l.note !== undefined ? l.note : (refTarif ? refTarif.n : '');
 
-        zoneRows += `<tr class="dv-prestation" title="Double-cliquer pour modifier">
-          <td style="vertical-align:middle;">
+        zoneRows += `<tr class="dv-prestation">
+          <td style="vertical-align:middle;border-bottom:none;">
             <div class="dv-cell-view" ondblclick="editCell(this,'text',${pi},${zi},${li},'p')">${escapeHTML(l.p||'')}</div>
-            ${noteDefaut ? `<div class="dv-prest-note dv-cell-view" ondblclick="editCell(this,'text',${pi},${zi},${li},'note')">${escapeHTML(noteDefaut)}</div>` : `<div class="dv-prest-note dv-cell-view dv-note-empty" ondblclick="editCell(this,'text',${pi},${zi},${li},'note')">+ descriptif</div>`}
           </td>
-          <td style="vertical-align:middle;">
+          <td style="vertical-align:middle;border-bottom:none;">
             <div class="dv-cell-view" ondblclick="editCell(this,'text',${pi},${zi},${li},'u')">${escapeHTML(l.u||'m2')}</div>
           </td>
-          <td style="vertical-align:middle;text-align:right;">
+          <td style="vertical-align:middle;text-align:right;border-bottom:none;">
             <div class="dv-cell-view" ondblclick="editCell(this,'number',${pi},${zi},${li},'q')">${q%1===0?q:q.toFixed(1)}</div>
           </td>
-          <td style="vertical-align:middle;text-align:right;">
+          <td style="vertical-align:middle;text-align:right;border-bottom:none;">
             <div class="dv-cell-view" ondblclick="editCell(this,'number',${pi},${zi},${li},'pu')">${pu?pu.toFixed(2):''}</div>
           </td>
-          <td style="text-align:right;vertical-align:middle;white-space:nowrap;">
+          <td style="text-align:right;vertical-align:middle;white-space:nowrap;border-bottom:none;">
             <span id="mont-${pi}-${zi}-${li}" style="font-weight:700;">${fEuro(mont)}</span>
             <button class="btn-del-row" onclick="delLigne(${pi},${zi},${li})" title="Supprimer">✕</button>
+          </td>
+        </tr>
+        <tr>
+          <td colspan="5" style="padding:0 10px 6px 14px;border-bottom:1px solid var(--cream2);">
+            <div class="dv-prest-note dv-cell-view" ondblclick="editCell(this,'text',${pi},${zi},${li},'note')">${noteDefaut ? escapeHTML(noteDefaut) : '<span style="color:#ddd;font-style:italic;font-size:10px;">+ descriptif</span>'}</div>
           </td>
         </tr>`;
       });
