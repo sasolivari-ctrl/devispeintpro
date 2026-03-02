@@ -2010,12 +2010,12 @@ function _renderDevisTable() {
 
     // Piece header — éditable
     tableRows += `<tr class="dv-piece-header">
-      <td colspan="5" style="display:flex;align-items:center;gap:6px;padding:8px 12px;">
+      <td colspan="5" style="padding:8px 12px;">
         📍
         <input class="dv-edit-piece" value="${piece.nom.replace(/"/g,'&quot;')}"
           oninput="_devisModel.pieces[${pi}].nom=this.value"
           title="Cliquer pour renommer la pièce">
-        <button class="btn-del-row" onclick="delPiece(${pi})" title="Supprimer cette pièce">🗑️</button>
+        <button class="btn-del-row" onclick="delPiece(${pi})" title="Supprimer cette pièce" style="margin-left:6px;">🗑️</button>
       </td>
     </tr>`;
 
@@ -2024,13 +2024,11 @@ function _renderDevisTable() {
 
       // Zone header — éditable
       tableRows += `<tr class="dv-zone-header">
-        <td colspan="4">
+        <td colspan="5">
           — <input class="dv-edit-zone" value="${zone.zone.replace(/"/g,'&quot;')}"
             oninput="_devisModel.pieces[${pi}].zones[${zi}].zone=this.value"
             title="Cliquer pour renommer la zone">
-        </td>
-        <td style="text-align:right;">
-          <button class="btn-add-zone" onclick="addZone(${pi})" title="Ajouter une zone">+ zone</button>
+          <button class="btn-add-zone" onclick="addZone(${pi})" title="Ajouter une zone" style="float:right;">+ zone</button>
         </td>
       </tr>`;
 
