@@ -2272,12 +2272,68 @@ async function changerMotDePasse() {
   if (!email) { showToast('Vous devez être connecté','err'); return; }
   try {
     const { error } = await supa.auth.resetPasswordForEmail(email, {
-      redirectTo: window.location.origin + '/#type=recovery'
+      redirectTo: window.location.origin + '/'
     });
     if (error) throw error;
-    showToast('Email de réinitialisation envoyé à ' + email, 'ok');
+    showToast('Email envoyé à ' + email + ' — cliquez le lien pour changer votre mot de passe', 'ok');
   } catch(err) {
     showToast('Erreur : ' + err.message, 'err');
+  }
+}
+
+function showPasswordRecoveryModal() {
+  // Supprimer modale existante si présente
+  const existing = document.getElementById('recovery-modal');
+  if (existing) existing.remove();
+
+  const modal = document.createElement('div');
+  modal.id = 'recovery-modal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;display:flex;align-items:center;justify-content:center;';
+  modal.innerHTML = `
+    <div style="background:#fff;border-radius:16px;padding:32px;width:100%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,.3);">
+      <div style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;margin-bottom:6px;">Nouveau mot de passe</div>
+      <div style="font-size:13px;color:#888;margin-bottom:20px;">Choisissez votre nouveau mot de passe</div>
+      <div style="margin-bottom:14px;">
+        <label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:6px;">Nouveau mot de passe</label>
+        <input id="new-pwd" type="password" placeholder="Minimum 8 caractères"
+          style="width:100%;padding:12px 14px;border:1.5px solid #E2DDD4;border-radius:9px;font-size:14px;box-sizing:border-box;">
+      </div>
+      <div style="margin-bottom:20px;">
+        <label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:6px;">Confirmer</label>
+        <input id="new-pwd-confirm" type="password" placeholder="Répétez le mot de passe"
+          style="width:100%;padding:12px 14px;border:1.5px solid #E2DDD4;border-radius:9px;font-size:14px;box-sizing:border-box;">
+      </div>
+      <div id="recovery-err" style="color:#e74c3c;font-size:12px;margin-bottom:12px;display:none;"></div>
+      <button onclick="confirmerNouveauMotDePasse()"
+        style="width:100%;padding:14px;background:#C8951E;color:#fff;border:none;border-radius:9px;font-size:15px;font-weight:700;cursor:pointer;">
+        ✅ Enregistrer le mot de passe
+      </button>
+    </div>`;
+  document.body.appendChild(modal);
+}
+
+async function confirmerNouveauMotDePasse() {
+  const pwd = document.getElementById('new-pwd')?.value;
+  const confirm = document.getElementById('new-pwd-confirm')?.value;
+  const errEl = document.getElementById('recovery-err');
+
+  if (!pwd || pwd.length < 8) {
+    errEl.textContent = 'Le mot de passe doit faire au moins 8 caractères.';
+    errEl.style.display = 'block'; return;
+  }
+  if (pwd !== confirm) {
+    errEl.textContent = 'Les mots de passe ne correspondent pas.';
+    errEl.style.display = 'block'; return;
+  }
+
+  try {
+    const { error } = await supa.auth.updateUser({ password: pwd });
+    if (error) throw error;
+    document.getElementById('recovery-modal')?.remove();
+    showToast('Mot de passe mis à jour ✓', 'ok');
+  } catch(err) {
+    errEl.textContent = 'Erreur : ' + err.message;
+    errEl.style.display = 'block';
   }
 }
 
@@ -4256,6 +4312,10 @@ rentParams.urssaf = 47;
   supa.auth.onAuthStateChange(async (event, session) => {
     if (event === 'SIGNED_IN' && session) { currentUser = session.user; }
     if (event === 'SIGNED_OUT') { currentUser = null; showAuthModal('login'); }
+    if (event === 'PASSWORD_RECOVERY') {
+      // Afficher une modale pour saisir le nouveau mot de passe
+      showPasswordRecoveryModal();
+    }
   });
 })();
 
