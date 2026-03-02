@@ -659,6 +659,11 @@ textarea.inp{min-height:130px;resize:vertical;line-height:1.7;}
 
       <!-- ── DASHBOARD ── -->
       <div class="view active" id="view-dashboard">
+        <div style="display:flex;justify-content:flex-end;margin-bottom:16px;">
+          <button class="btn-new" onclick="showView('nouveau')" style="padding:12px 22px;font-size:14px;background:var(--gold);color:var(--ink);">
+            ⚡ Créer un nouveau devis
+          </button>
+        </div>
         <div class="stats-row">
           <div class="stat-card dark">
             <div class="stat-label">CA ce mois</div>
@@ -2067,14 +2072,21 @@ function _renderDevisTable() {
             <button class="btn-del-row" onclick="delLigne(${pi},${zi},${li})" title="Supprimer">✕</button>
           </td>
         </tr>
-        ${noteDefaut !== undefined ? `<tr class="dv-note-row">
+        ${noteDefaut ? `<tr class="dv-note-row">
           <td colspan="5" style="padding:0 10px 6px 10px;border-bottom:1px solid var(--cream2);">
             <input class="dv-edit-cell" value="${(noteDefaut||'').replace(/"/g,'&quot;')}"
               oninput="_devisModel.pieces[${pi}].zones[${zi}].lignes[${li}].note=this.value"
               placeholder="Descriptif (optionnel)"
               style="font-size:10px;color:#aaa;width:100%;padding:2px 4px;font-style:italic;">
           </td>
-        </tr>` : ''}`;
+        </tr>` : `<tr class="dv-note-row">
+          <td colspan="5" style="padding:0 10px 4px 10px;border-bottom:1px solid var(--cream2);">
+            <input class="dv-edit-cell" value=""
+              oninput="_devisModel.pieces[${pi}].zones[${zi}].lignes[${li}].note=this.value"
+              placeholder="+ Descriptif (optionnel)"
+              style="font-size:10px;color:#ccc;width:100%;padding:1px 4px;font-style:italic;background:transparent;">
+          </td>
+        </tr>`}`;
       });
 
       tableRows += zoneRows;
