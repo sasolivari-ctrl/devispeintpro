@@ -4296,24 +4296,37 @@ rentParams.urssaf = 47;
 
 // Vérifier session Supabase existante
 (async () => {
+  // Détecter si on arrive depuis un lien de reset password
+  const hash = window.location.hash;
+  const isRecovery = hash.includes('type=recovery') || hash.includes('type=magiclink');
+
   const {data:{session}} = await supa.auth.getSession();
   if (session && session.user) {
     await onLogin(session.user);
+    // Si c'est un recovery, afficher la modale immédiatement
+    if (isRecovery) {
+      setTimeout(() => showPasswordRecoveryModal(), 300);
+    }
   } else {
     // Essayer restauration locale en attendant
     const restored = restaurer();
     if (restored && statut_juridique === 'autoentrepreneur') rentParams.urssaf = 23;
     renderDashboard();
     setTimeout(appliquerProfil, 50);
-    showAuthModal('login');
+    if (!isRecovery) showAuthModal('login');
   }
 
   // Écouter les changements de session
   supa.auth.onAuthStateChange(async (event, session) => {
-    if (event === 'SIGNED_IN' && session) { currentUser = session.user; }
+    if (event === 'SIGNED_IN' && session) {
+      currentUser = session.user;
+      // Si connexion suite à un lien recovery, afficher la modale
+      if (isRecovery) {
+        setTimeout(() => showPasswordRecoveryModal(), 300);
+      }
+    }
     if (event === 'SIGNED_OUT') { currentUser = null; showAuthModal('login'); }
     if (event === 'PASSWORD_RECOVERY') {
-      // Afficher une modale pour saisir le nouveau mot de passe
       showPasswordRecoveryModal();
     }
   });
