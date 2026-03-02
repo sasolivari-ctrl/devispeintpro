@@ -2058,7 +2058,10 @@ function _renderDevisTable() {
             <input class="dv-edit-cell" value="${(l.p||'').replace(/"/g,'&quot;')}"
               oninput="_devisModel.pieces[${pi}].zones[${zi}].lignes[${li}].p=this.value"
               placeholder="Nom de la prestation">
-            ${noteDefaut ? `<div class="dv-prest-note">${escapeHTML(noteDefaut)}</div>` : ''}
+            <input class="dv-edit-cell" value="${(noteDefaut||'').replace(/"/g,'&quot;')}"
+              oninput="_devisModel.pieces[${pi}].zones[${zi}].lignes[${li}].note=this.value"
+              placeholder="+ descriptif"
+              style="font-size:10px;color:#aaa;margin-top:2px;width:100%;padding:2px 4px;font-style:italic;">
           </td>
           <td>
             <input class="dv-edit-cell dv-edit-num" value="${l.u||'m2'}"
@@ -2163,12 +2166,9 @@ function _renderDevisTable() {
     </div>
 
     <div class="dv-totaux" id="dv-totaux">
-      <div class="tot-row"><span>Total HT prestations</span><span id="tot-ht-prest">${fEuro(sousTotal)}</span></div>
-      <div class="tot-row"><span>Forfait déplacement (10%)</span><span id="tot-forfait2">${fEuro(forfait)}</span></div>
       <div class="tot-row"><span>Total HT</span><span id="tot-ht">${fEuro(totalHT)}</span></div>
       <div class="tot-row"><span>TVA (${Math.round(tvaR*100)}%)</span><span id="tot-tva">${fEuro(tva)}</span></div>
       <div class="tot-row"><span>TOTAL TTC</span><span id="tot-ttc" style="color:var(--gold);">${fEuro(ttc)}</span></div>
-      <div class="tot-row acompte"><span>Acompte suggéré (30%)</span><span id="tot-acompte">${fEuro(acompte)}</span></div>
     </div>
 
     <div class="dv-actions">
@@ -2620,6 +2620,10 @@ function rentResultHTML(devis, c) {
       <span class="rent-total-val" style="color:${marginColor};">${fEuro(c.benef)}</span>
     </div>
     <div class="rent-margin-label" style="margin-top:8px;">${marginLabel} — Marge nette : <strong style="color:${marginColor};">${c.margin.toFixed(1)}%</strong></div>
+    <div style="margin-top:14px;padding:10px 14px;background:var(--gold-pale);border-radius:8px;border:1px solid var(--gold-lt);display:flex;justify-content:space-between;align-items:center;">
+      <span style="font-size:12px;color:var(--gold);font-weight:600;">💰 Acompte suggéré (30%)</span>
+      <strong style="color:var(--gold);font-size:15px;">${fEuro(exDevis.montant * 0.30)}</strong>
+    </div>
   `;
 }
 
