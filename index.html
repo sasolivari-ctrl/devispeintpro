@@ -201,6 +201,10 @@ textarea.inp{min-height:130px;resize:vertical;line-height:1.7;}
 .dv-forfait td{background:var(--gold-pale);border-top:2px solid var(--gold-lt);}
 .dv-prest-name{font-weight:500;}
 .dv-prest-note{font-size:10px;color:#aaa;margin-top:1px;}
+.dv-cell-view{min-height:22px;padding:2px 4px;border-radius:4px;cursor:pointer;transition:background .15s;}
+.dv-cell-view:hover{background:var(--cream);outline:1px dashed var(--cream2);}
+.dv-note-empty{color:#ccc;font-style:italic;font-size:10px;}
+.dv-cell-editing input{width:100%;background:var(--white);border:1.5px solid var(--gold);border-radius:5px;padding:2px 6px;font-size:12px;font-family:'Plus Jakarta Sans',sans-serif;color:var(--ink);}
 
 .dv-totaux{background:var(--cream);border-radius:8px;padding:12px 14px;}
 .tot-row{display:flex;justify-content:space-between;font-size:12.5px;padding:5px 0;border-bottom:1px solid #DDD9D0;}
@@ -2044,47 +2048,25 @@ function _renderDevisTable() {
         const refTarif = TARIFS.find(x => x.p === l.p);
         const noteDefaut = l.note !== undefined ? l.note : (refTarif ? refTarif.n : '');
 
-        zoneRows += `<tr class="dv-prestation">
-          <td style="vertical-align:middle;border-bottom:none;padding-bottom:2px;">
-            <input class="dv-edit-cell" value="${(l.p||'').replace(/"/g,'&quot;')}"
-              oninput="_devisModel.pieces[${pi}].zones[${zi}].lignes[${li}].p=this.value"
-              placeholder="Nom de la prestation">
+        zoneRows += `<tr class="dv-prestation" title="Double-cliquer pour modifier">
+          <td style="vertical-align:middle;">
+            <div class="dv-cell-view" ondblclick="editCell(this,'text',${pi},${zi},${li},'p')">${escapeHTML(l.p||'')}</div>
+            ${noteDefaut ? `<div class="dv-prest-note dv-cell-view" ondblclick="editCell(this,'text',${pi},${zi},${li},'note')">${escapeHTML(noteDefaut)}</div>` : `<div class="dv-prest-note dv-cell-view dv-note-empty" ondblclick="editCell(this,'text',${pi},${zi},${li},'note')">+ descriptif</div>`}
           </td>
-          <td style="vertical-align:middle;border-bottom:none;">
-            <input class="dv-edit-cell dv-edit-num" value="${l.u||'m2'}"
-              oninput="_devisModel.pieces[${pi}].zones[${zi}].lignes[${li}].u=this.value"
-              placeholder="m2">
+          <td style="vertical-align:middle;">
+            <div class="dv-cell-view" ondblclick="editCell(this,'text',${pi},${zi},${li},'u')">${escapeHTML(l.u||'m2')}</div>
           </td>
-          <td style="vertical-align:middle;border-bottom:none;">
-            <input class="dv-edit-cell dv-edit-num" type="number" value="${q||''}"
-              oninput="_devisModel.pieces[${pi}].zones[${zi}].lignes[${li}].q=parseFloat(this.value)||0;_refreshTotals()"
-              placeholder="0">
+          <td style="vertical-align:middle;text-align:right;">
+            <div class="dv-cell-view" ondblclick="editCell(this,'number',${pi},${zi},${li},'q')">${q%1===0?q:q.toFixed(1)}</div>
           </td>
-          <td style="vertical-align:middle;border-bottom:none;">
-            <input class="dv-edit-cell dv-edit-pu" type="number" value="${pu||''}"
-              oninput="_devisModel.pieces[${pi}].zones[${zi}].lignes[${li}].pu=parseFloat(this.value)||0;_refreshTotals()"
-              placeholder="0">
+          <td style="vertical-align:middle;text-align:right;">
+            <div class="dv-cell-view" ondblclick="editCell(this,'number',${pi},${zi},${li},'pu')">${pu?pu.toFixed(2):''}</div>
           </td>
-          <td style="text-align:right;vertical-align:middle;white-space:nowrap;border-bottom:none;">
+          <td style="text-align:right;vertical-align:middle;white-space:nowrap;">
             <span id="mont-${pi}-${zi}-${li}" style="font-weight:700;">${fEuro(mont)}</span>
             <button class="btn-del-row" onclick="delLigne(${pi},${zi},${li})" title="Supprimer">✕</button>
           </td>
-        </tr>
-        ${noteDefaut ? `<tr class="dv-note-row">
-          <td colspan="5" style="padding:0 10px 6px 10px;border-bottom:1px solid var(--cream2);">
-            <input class="dv-edit-cell" value="${(noteDefaut||'').replace(/"/g,'&quot;')}"
-              oninput="_devisModel.pieces[${pi}].zones[${zi}].lignes[${li}].note=this.value"
-              placeholder="Descriptif (optionnel)"
-              style="font-size:10px;color:#aaa;width:100%;padding:2px 4px;font-style:italic;">
-          </td>
-        </tr>` : `<tr class="dv-note-row">
-          <td colspan="5" style="padding:0 10px 4px 10px;border-bottom:1px solid var(--cream2);">
-            <input class="dv-edit-cell" value=""
-              oninput="_devisModel.pieces[${pi}].zones[${zi}].lignes[${li}].note=this.value"
-              placeholder="+ Descriptif (optionnel)"
-              style="font-size:10px;color:#ccc;width:100%;padding:1px 4px;font-style:italic;background:transparent;">
-          </td>
-        </tr>`}`;
+        </tr>`;
       });
 
       tableRows += zoneRows;
@@ -2283,6 +2265,39 @@ function updateSidebar() {
   $('sb-logo-display').textContent = nom ? nom.charAt(0).toUpperCase() : 'P';
 }
 function saveProfil() { updateSidebar(); showToast('Profil enregistré ✓','ok'); }
+
+// ── ÉDITION INLINE DU TABLEAU DEVIS ──────────────────────────────────────────
+function editCell(div, type, pi, zi, li, field) {
+  if (div.classList.contains('dv-cell-editing')) return;
+  div.classList.add('dv-cell-editing');
+
+  const oldVal = _devisModel.pieces[pi].zones[zi].lignes[li][field] ?? '';
+  const displayVal = type === 'number' ? (oldVal || '') : (oldVal || '');
+
+  const input = document.createElement('input');
+  input.type = type === 'number' ? 'number' : 'text';
+  input.value = displayVal;
+  input.step = 'any';
+  input.style.cssText = 'width:100%;background:#fff;border:1.5px solid var(--gold);border-radius:5px;padding:2px 6px;font-size:12px;font-family:inherit;color:var(--ink);';
+
+  div.innerHTML = '';
+  div.appendChild(input);
+  input.focus();
+  input.select();
+
+  const save = () => {
+    const val = type === 'number' ? (parseFloat(input.value) || 0) : input.value;
+    _devisModel.pieces[pi].zones[zi].lignes[li][field] = val;
+    _refreshTotals();
+    renderPreview(_devisModel);
+  };
+
+  input.addEventListener('blur', save);
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { save(); input.blur(); }
+    if (e.key === 'Escape') { renderPreview(_devisModel); }
+  });
+}
 
 async function changerMotDePasse() {
   const email = currentUser?.email;
