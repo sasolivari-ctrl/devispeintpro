@@ -165,7 +165,7 @@ textarea.inp{min-height:130px;resize:vertical;line-height:1.7;}
 .dv-table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:12px;}
 .dv-table th{background:var(--ink2);color:var(--gold-lt);padding:7px 10px;text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.5px;font-weight:700;}
 .dv-table th:last-child{text-align:right;}
-.dv-table td{padding:8px 10px;border-bottom:1px solid var(--cream2);color:var(--ink);vertical-align:middle;}
+.dv-table td{padding:8px 10px;border-bottom:1px solid var(--cream2);color:var(--ink);vertical-align:top;}
 .dv-table td:last-child{text-align:right;font-weight:600;white-space:nowrap;}
 .dv-table tr:hover td{background:var(--gold-pale);}
 .dv-piece-header td{
@@ -188,13 +188,10 @@ textarea.inp{min-height:130px;resize:vertical;line-height:1.7;}
   border-left:3px solid var(--gold);
 }
 .dv-prestation td{
-  padding:9px 10px!important;
+  padding:9px 10px 9px 10px!important;
 }
 .dv-prestation td:first-child{
   padding-left:28px!important;
-}
-.dv-prestation td:not(:first-child){
-  text-align:right;
 }
 .dv-piece-subtotal td{
   background:var(--gold-pale)!important;
@@ -207,10 +204,6 @@ textarea.inp{min-height:130px;resize:vertical;line-height:1.7;}
 .dv-forfait td{background:var(--gold-pale);border-top:2px solid var(--gold-lt);}
 .dv-prest-name{font-weight:500;}
 .dv-prest-note{font-size:10px;color:#aaa;margin-top:1px;}
-.dv-cell-view{min-height:22px;padding:2px 4px;border-radius:4px;cursor:pointer;transition:background .15s;}
-.dv-cell-view:hover{background:var(--cream);outline:1px dashed var(--cream2);}
-.dv-note-empty{color:#ccc;font-style:italic;font-size:10px;}
-.dv-cell-editing input{width:100%;background:var(--white);border:1.5px solid var(--gold);border-radius:5px;padding:2px 6px;font-size:12px;font-family:'Plus Jakarta Sans',sans-serif;color:var(--ink);}
 
 .dv-totaux{background:var(--cream);border-radius:8px;padding:12px 14px;}
 .tot-row{display:flex;justify-content:space-between;font-size:12.5px;padding:5px 0;border-bottom:1px solid #DDD9D0;}
@@ -428,8 +421,8 @@ textarea.inp{min-height:130px;resize:vertical;line-height:1.7;}
 }
 .dv-edit-cell:hover{border-color:var(--cream2);background:var(--cream);}
 .dv-edit-cell:focus{outline:none;border-color:var(--gold);background:var(--white);cursor:text;}
-.dv-edit-num{width:100%;max-width:70px;text-align:right;}
-.dv-edit-pu{width:100%;max-width:85px;text-align:right;}
+.dv-edit-num{width:75px;text-align:right;}
+.dv-edit-pu{width:80px;text-align:right;}
 .dv-edit-piece{
   background:transparent;border:1.5px solid transparent;border-radius:5px;
   padding:3px 8px;font-family:'Playfair Display',serif;font-size:13px;
@@ -2055,26 +2048,30 @@ function _renderDevisTable() {
         const noteDefaut = l.note !== undefined ? l.note : (refTarif ? refTarif.n : '');
 
         zoneRows += `<tr class="dv-prestation">
-          <td style="vertical-align:middle;border-bottom:none;">
-            <div class="dv-cell-view" ondblclick="editCell(this,'text',${pi},${zi},${li},'p')">${escapeHTML(l.p||'')}</div>
+          <td>
+            <input class="dv-edit-cell" value="${(l.p||'').replace(/"/g,'&quot;')}"
+              oninput="_devisModel.pieces[${pi}].zones[${zi}].lignes[${li}].p=this.value"
+              placeholder="Nom de la prestation">
+            ${noteDefaut ? `<div class="dv-prest-note">${escapeHTML(noteDefaut)}</div>` : ''}
           </td>
-          <td style="vertical-align:middle;border-bottom:none;">
-            <div class="dv-cell-view" ondblclick="editCell(this,'text',${pi},${zi},${li},'u')">${escapeHTML(l.u||'m2')}</div>
+          <td>
+            <input class="dv-edit-cell dv-edit-num" value="${l.u||'m2'}"
+              oninput="_devisModel.pieces[${pi}].zones[${zi}].lignes[${li}].u=this.value"
+              style="width:55px;" placeholder="m2">
           </td>
-          <td style="vertical-align:middle;text-align:right;border-bottom:none;">
-            <div class="dv-cell-view" ondblclick="editCell(this,'number',${pi},${zi},${li},'q')">${q%1===0?q:q.toFixed(1)}</div>
+          <td>
+            <input class="dv-edit-cell dv-edit-num" type="number" value="${q||''}"
+              oninput="_devisModel.pieces[${pi}].zones[${zi}].lignes[${li}].q=parseFloat(this.value)||0;_refreshTotals()"
+              placeholder="0">
           </td>
-          <td style="vertical-align:middle;text-align:right;border-bottom:none;">
-            <div class="dv-cell-view" ondblclick="editCell(this,'number',${pi},${zi},${li},'pu')">${pu?pu.toFixed(2):''}</div>
+          <td>
+            <input class="dv-edit-cell dv-edit-pu" type="number" value="${pu||''}"
+              oninput="_devisModel.pieces[${pi}].zones[${zi}].lignes[${li}].pu=parseFloat(this.value)||0;_refreshTotals()"
+              placeholder="0">
           </td>
-          <td style="text-align:right;vertical-align:middle;white-space:nowrap;border-bottom:none;">
+          <td style="text-align:right;">
             <span id="mont-${pi}-${zi}-${li}" style="font-weight:700;">${fEuro(mont)}</span>
             <button class="btn-del-row" onclick="delLigne(${pi},${zi},${li})" title="Supprimer">✕</button>
-          </td>
-        </tr>
-        <tr>
-          <td colspan="5" style="padding:0 10px 6px 14px;border-bottom:1px solid var(--cream2);">
-            <div class="dv-prest-note dv-cell-view" ondblclick="editCell(this,'text',${pi},${zi},${li},'note')">${noteDefaut ? escapeHTML(noteDefaut) : '<span style="color:#ddd;font-style:italic;font-size:10px;">+ descriptif</span>'}</div>
           </td>
         </tr>`;
       });
@@ -2148,17 +2145,9 @@ function _renderDevisTable() {
 
     <div style="overflow-x:auto;">
       <table class="dv-table" id="dv-main-table">
-        <colgroup>
-          <col style="width:44%;">
-          <col style="width:9%;">
-          <col style="width:11%;">
-          <col style="width:16%;">
-          <col style="width:20%;">
-        </colgroup>
         <thead><tr>
-          <th>Prestation</th>
-          <th>Unité</th>
-          <th>Qté</th>
+          <th style="width:38%;">Prestation</th>
+          <th>Unité</th><th>Qté</th>
           <th style="text-align:right;">Prix unit.</th>
           <th style="text-align:right;">Total HT</th>
         </tr></thead>
