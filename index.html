@@ -2052,33 +2052,37 @@ function _renderDevisTable() {
         const noteDefaut = l.note !== undefined ? l.note : (refTarif ? refTarif.n : '');
 
         zoneRows += `<tr class="dv-prestation">
-          <td>
+          <td style="border-bottom:none;padding-bottom:2px;">
             <input class="dv-edit-cell" value="${(l.p||'').replace(/"/g,'&quot;')}"
               oninput="_devisModel.pieces[${pi}].zones[${zi}].lignes[${li}].p=this.value"
               placeholder="Nom de la prestation">
-            <input class="dv-edit-cell" value="${(noteDefaut||'').replace(/"/g,'&quot;')}"
-              oninput="_devisModel.pieces[${pi}].zones[${zi}].lignes[${li}].note=this.value"
-              placeholder="+ descriptif"
-              style="font-size:10px;color:#aaa;margin-top:2px;width:100%;padding:2px 4px;font-style:italic;">
           </td>
-          <td>
+          <td style="border-bottom:none;padding-bottom:2px;">
             <input class="dv-edit-cell dv-edit-num" value="${l.u||'m2'}"
               oninput="_devisModel.pieces[${pi}].zones[${zi}].lignes[${li}].u=this.value"
               placeholder="m2">
           </td>
-          <td>
+          <td style="border-bottom:none;padding-bottom:2px;text-align:right;">
             <input class="dv-edit-cell dv-edit-num" type="number" value="${q||''}"
               oninput="_devisModel.pieces[${pi}].zones[${zi}].lignes[${li}].q=parseFloat(this.value)||0;_refreshTotals()"
               placeholder="0">
           </td>
-          <td>
+          <td style="border-bottom:none;padding-bottom:2px;text-align:right;">
             <input class="dv-edit-cell dv-edit-pu" type="number" value="${pu||''}"
               oninput="_devisModel.pieces[${pi}].zones[${zi}].lignes[${li}].pu=parseFloat(this.value)||0;_refreshTotals()"
               placeholder="0">
           </td>
-          <td style="text-align:right;">
+          <td style="text-align:right;border-bottom:none;padding-bottom:2px;white-space:nowrap;">
             <span id="mont-${pi}-${zi}-${li}" style="font-weight:700;">${fEuro(mont)}</span>
             <button class="btn-del-row" onclick="delLigne(${pi},${zi},${li})" title="Supprimer">✕</button>
+          </td>
+        </tr>
+        <tr>
+          <td colspan="5" style="padding:0 10px 6px 22px;border-bottom:1px solid var(--cream2);">
+            <input class="dv-edit-cell" value="${(noteDefaut||'').replace(/"/g,'&quot;')}"
+              oninput="_devisModel.pieces[${pi}].zones[${zi}].lignes[${li}].note=this.value"
+              placeholder="+ descriptif"
+              style="font-size:10px;color:#aaa;width:100%;padding:1px 4px;font-style:italic;">
           </td>
         </tr>`;
       });
