@@ -162,7 +162,7 @@ textarea.inp{min-height:130px;resize:vertical;line-height:1.7;}
 
 .dv-interp{background:var(--cream);border-radius:8px;padding:10px 12px;font-size:12px;color:#777;line-height:1.6;margin-bottom:12px;font-style:italic;}
 
-.dv-table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:12px;}
+.dv-table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:12px;table-layout:fixed;}
 .dv-table th{background:var(--ink2);color:var(--gold-lt);padding:7px 10px;text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.5px;font-weight:700;}
 .dv-table th:last-child{text-align:right;}
 .dv-table td{padding:8px 10px;border-bottom:1px solid var(--cream2);color:var(--ink);vertical-align:top;}
@@ -188,10 +188,16 @@ textarea.inp{min-height:130px;resize:vertical;line-height:1.7;}
   border-left:3px solid var(--gold);
 }
 .dv-prestation td{
-  padding:9px 10px 9px 10px!important;
+  padding:8px 10px!important;
+  overflow:hidden;
 }
 .dv-prestation td:first-child{
-  padding-left:28px!important;
+  padding-left:22px!important;
+}
+.dv-prestation td:nth-child(2),
+.dv-prestation td:nth-child(3),
+.dv-prestation td:nth-child(4){
+  text-align:right;
 }
 .dv-piece-subtotal td{
   background:var(--gold-pale)!important;
@@ -421,8 +427,8 @@ textarea.inp{min-height:130px;resize:vertical;line-height:1.7;}
 }
 .dv-edit-cell:hover{border-color:var(--cream2);background:var(--cream);}
 .dv-edit-cell:focus{outline:none;border-color:var(--gold);background:var(--white);cursor:text;}
-.dv-edit-num{width:75px;text-align:right;}
-.dv-edit-pu{width:80px;text-align:right;}
+.dv-edit-num{width:100%;text-align:right;box-sizing:border-box;}
+.dv-edit-pu{width:100%;text-align:right;box-sizing:border-box;}
 .dv-edit-piece{
   background:transparent;border:1.5px solid transparent;border-radius:5px;
   padding:3px 8px;font-family:'Playfair Display',serif;font-size:13px;
@@ -2057,7 +2063,7 @@ function _renderDevisTable() {
           <td>
             <input class="dv-edit-cell dv-edit-num" value="${l.u||'m2'}"
               oninput="_devisModel.pieces[${pi}].zones[${zi}].lignes[${li}].u=this.value"
-              style="width:55px;" placeholder="m2">
+              placeholder="m2">
           </td>
           <td>
             <input class="dv-edit-cell dv-edit-num" type="number" value="${q||''}"
@@ -2146,10 +2152,11 @@ function _renderDevisTable() {
     <div style="overflow-x:auto;">
       <table class="dv-table" id="dv-main-table">
         <thead><tr>
-          <th style="width:38%;">Prestation</th>
-          <th>Unité</th><th>Qté</th>
-          <th style="text-align:right;">Prix unit.</th>
-          <th style="text-align:right;">Total HT</th>
+          <th style="width:45%;">Prestation</th>
+          <th style="width:8%;">Unité</th>
+          <th style="width:10%;text-align:right;">Qté</th>
+          <th style="width:17%;text-align:right;">Prix unit.</th>
+          <th style="width:20%;text-align:right;">Total HT</th>
         </tr></thead>
         <tbody id="dv-tbody">${tableRows}</tbody>
       </table>
