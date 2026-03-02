@@ -194,7 +194,6 @@ textarea.inp{min-height:130px;resize:vertical;line-height:1.7;}
 .dv-prestation td:first-child{
   padding-left:22px!important;
 }
-.dv-prestation td:nth-child(2),
 .dv-prestation td:nth-child(3),
 .dv-prestation td:nth-child(4){
   text-align:right;
@@ -428,6 +427,7 @@ textarea.inp{min-height:130px;resize:vertical;line-height:1.7;}
 .dv-edit-cell:hover{border-color:var(--cream2);background:var(--cream);}
 .dv-edit-cell:focus{outline:none;border-color:var(--gold);background:var(--white);cursor:text;}
 .dv-edit-num{width:100%;text-align:right;box-sizing:border-box;}
+.dv-prestation td:nth-child(2) .dv-edit-num{text-align:left;}
 .dv-edit-pu{width:100%;text-align:right;box-sizing:border-box;}
 .dv-edit-piece{
   background:transparent;border:1.5px solid transparent;border-radius:5px;
@@ -2157,10 +2157,10 @@ function _renderDevisTable() {
     <div style="overflow-x:auto;">
       <table class="dv-table" id="dv-main-table">
         <thead><tr>
-          <th style="width:45%;">Prestation</th>
-          <th style="width:8%;">Unité</th>
-          <th style="width:10%;text-align:right;">Qté</th>
-          <th style="width:17%;text-align:right;">Prix unit.</th>
+          <th style="width:42%;">Prestation</th>
+          <th style="width:9%;">Unité</th>
+          <th style="width:11%;text-align:right;">Qté</th>
+          <th style="width:18%;text-align:right;">Prix unit.</th>
           <th style="width:20%;text-align:right;">Total HT</th>
         </tr></thead>
         <tbody id="dv-tbody">${tableRows}</tbody>
