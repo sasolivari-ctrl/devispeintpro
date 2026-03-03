@@ -3671,12 +3671,13 @@ window.addEventListener('beforeprint', function() {
   printRows += `<tr class="dv-zone-header">
     <td colspan="5">— Déplacement, protection et nettoyage</td>
   </tr>
-  <tr class="dv-prestation dv-forfait-row">
+  <tr class="dv-prestation" style="background:#fff!important;">
+    <td style="background:#fff!important;"><div class="dv-prest-name">Déplacement, protection et nettoyage 10%</div>
         <div class="dv-prest-note">Forfait 10% du total HT</div></td>
-    <td>forfait</td>
-    <td style="text-align:right;">10%</td>
-    <td style="text-align:right;"></td>
-    <td style="text-align:right;font-weight:700;">${fEuro(forfait)}</td>
+    <td style="background:#fff!important;">forfait</td>
+    <td style="text-align:right;background:#fff!important;">10%</td>
+    <td style="text-align:right;background:#fff!important;"></td>
+    <td style="text-align:right;font-weight:700;background:#fff!important;">${fEuro(forfait)}</td>
   </tr>`;
 
   tbody.innerHTML = printRows;
