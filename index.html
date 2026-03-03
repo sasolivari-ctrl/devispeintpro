@@ -1104,7 +1104,17 @@ function getClientInfo() {
 }
 
 /** Génère le HTML d'un document PDF (devis ou facture) dans une popup */
-function genererPDF(doc, type = 'devis') {
+function genererPDF(doc, type) {
+  type = type || 'devis';
+  var html = genererPDFHTML(doc, type);
+  var w = window.open('', '_blank', 'width=900,height=700');
+  if (!w) { showToast('Autorisez les popups pour ce site', 'err'); return; }
+  w.document.write(html); w.document.close();
+  setTimeout(function(){ w.focus(); }, 300);
+}
+
+function genererPDFHTML(doc, type) {
+  type = type || 'devis';
   const e = getProfilInfo();
   const isFacture  = type === 'facture';
   const isAcompte  = doc.type === 'Acompte';
@@ -1288,11 +1298,7 @@ ${totauxHTML}
 <button class="btn-print" onclick="window.print()">🖨️ Imprimer / Enregistrer en PDF</button>
 </body></html>`;
 
-  const w = window.open('', '_blank', 'width=900,height=700');
-  if (!w) { showToast('Autorisez les popups pour ce site', 'err'); return; }
-  w.document.write(html);
-  w.document.close();
-  setTimeout(() => w.focus(), 300);
+  return html;
 }
 
 // ── TARIFS ──────────────────────────────────────────────────────────────────
@@ -3725,7 +3731,8 @@ function renderFactures() {
       <td class="devis-amount">${fEuro(f.montant)}</td>
       <td>
         <div style="display:flex;gap:4px;">
-          <button class="btn-table"        onclick="ouvrirPDFFacture(${i})">🖨️ PDF</button>
+          <button class="btn-table" onclick="visualiserFacture(${i})">👁️ Voir</button>
+          <button class="btn-table" onclick="ouvrirPDFFacture(${i})">🖨️ PDF</button>
           ${f.statut!=='Payée'?`<button class="btn-table btn-table-ok" onclick="marquerPayee(${i})">✓ Payée</button>`:''}
           <button class="btn-table btn-table-ok" onclick="envoyerEmailFacture(${i})">✉️</button>
         </div>
@@ -3851,6 +3858,27 @@ function ouvrirPDFFacture(idx) {
   const f = facturesList[idx];
   if (!f) return;
   genererPDF(f, 'facture');
+}
+
+function visualiserFacture(idx) {
+  var f = facturesList[idx]; if (!f) return;
+  var html = genererPDFHTML(f, 'facture');
+  var old = document.getElementById('facture-modal'); if (old) old.remove();
+  var m = document.createElement('div'); m.id = 'facture-modal';
+  m.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.75);display:flex;flex-direction:column;';
+  var hd = document.createElement('div');
+  hd.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:10px 16px;background:#111820;flex-shrink:0;';
+  hd.innerHTML = '<span style="color:#C8951E;font-weight:700;font-size:14px;">' + escapeHTML(f.num) + ' — ' + escapeHTML(f.client) + '</span>'
+    + '<div style="display:flex;gap:8px;">'
+    + '<button onclick="ouvrirPDFFacture(' + idx + ')" style="padding:6px 14px;background:#C8951E;color:#111820;border:none;border-radius:6px;font-weight:700;cursor:pointer;">🖨️ PDF</button>'
+    + '<button onclick="document.getElementById(\x27facture-modal\x27).remove()" style="padding:6px 14px;background:#555;color:#fff;border:none;border-radius:6px;cursor:pointer;">✕ Fermer</button>'
+    + '</div>';
+  var ifr = document.createElement('iframe'); ifr.id = 'facture-iframe';
+  ifr.style.cssText = 'flex:1;border:none;background:#fff;width:100%;';
+  m.appendChild(hd); m.appendChild(ifr); document.body.appendChild(m);
+  ifr.contentDocument.open();
+  ifr.contentDocument.write(html);
+  ifr.contentDocument.close();
 }
 
 // ── ENVOI EMAIL ───────────────────────────────────────────────────────────────
