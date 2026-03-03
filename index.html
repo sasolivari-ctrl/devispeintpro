@@ -191,13 +191,10 @@ textarea.inp{min-height:130px;resize:vertical;line-height:1.7;}
   padding:8px 10px!important;
   overflow:hidden;
 }
-.dv-prestation td:first-child{
-  padding-left:22px!important;
-}
-.dv-prestation td:nth-child(2),
 .dv-prestation td:nth-child(3),
 .dv-prestation td:nth-child(4){
   text-align:right;
+  padding-right:6px!important;
 }
 .dv-piece-subtotal td{
   background:var(--gold-pale)!important;
@@ -427,8 +424,9 @@ textarea.inp{min-height:130px;resize:vertical;line-height:1.7;}
 }
 .dv-edit-cell:hover{border-color:var(--cream2);background:var(--cream);}
 .dv-edit-cell:focus{outline:none;border-color:var(--gold);background:var(--white);cursor:text;}
-.dv-edit-num{width:100%;text-align:right;box-sizing:border-box;}
-.dv-edit-pu{width:100%;text-align:right;box-sizing:border-box;}
+.dv-edit-num{width:100%;text-align:right;box-sizing:border-box;padding-right:0;}
+.dv-prestation td:nth-child(2) .dv-edit-num{text-align:left;padding-left:0;}
+.dv-edit-pu{width:100%;text-align:right;box-sizing:border-box;padding-right:0;}
 .dv-edit-piece{
   background:transparent;border:1.5px solid transparent;border-radius:5px;
   padding:3px 8px;font-family:'Playfair Display',serif;font-size:13px;
@@ -1201,12 +1199,9 @@ function genererPDF(doc, type = 'devis') {
     // Devis
     const prestHT = sousTotal / 1.10; // sousTotal inclut le forfait
     totauxHTML = `<div class="totaux"><div class="totaux-inner">
-      <div class="tot-row"><span>Total HT prestations</span><span>${prestHT.toFixed(2)} €</span></div>
-      <div class="tot-row"><span>Déplacement (10%)</span><span>${(prestHT*0.1).toFixed(2)} €</span></div>
       <div class="tot-row"><span>Total HT</span><span>${totalHT.toFixed(2)} €</span></div>
       <div class="tot-row"><span>TVA (${Math.round(e.tvaR*100)}%)</span><span>${tva.toFixed(2)} €</span></div>
       <div class="tot-row ttc"><span>TOTAL TTC</span><span>${ttc.toFixed(2)} €</span></div>
-      <div class="tot-row acompte"><span>Acompte suggéré (30%)</span><span>${acompte30.toFixed(2)} €</span></div>
     </div></div>`;
   }
 
