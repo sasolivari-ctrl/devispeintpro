@@ -530,7 +530,8 @@ textarea.inp{min-height:130px;resize:vertical;line-height:1.7;}
   .dv-piece-header td{background:#111820!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
   .dv-zone-header td{background:#F0EDE8!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
   .dv-piece-subtotal td{background:#FDF8E8!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
-  .dv-forfait td{background:#F5F2EC!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .dv-forfait td{background:#ffffff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .dv-forfait-row td{background:#ffffff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
   .dv-table th{background:#2A3240!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
 
   /* Inputs editables -> texte pur */
@@ -3670,8 +3671,7 @@ window.addEventListener('beforeprint', function() {
   printRows += `<tr class="dv-zone-header">
     <td colspan="5">— Déplacement, protection et nettoyage</td>
   </tr>
-  <tr class="dv-prestation">
-    <td><div class="dv-prest-name">Déplacement, protection et nettoyage 10%</div>
+  <tr class="dv-prestation dv-forfait-row">
         <div class="dv-prest-note">Forfait 10% du total HT</div></td>
     <td>forfait</td>
     <td style="text-align:right;">10%</td>
