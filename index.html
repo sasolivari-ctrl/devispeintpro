@@ -1169,7 +1169,7 @@ function genererPDF(doc, type = 'devis') {
 
     const forfait = sousTotal * 0.10;
     sousTotal += forfait; // pour que totalHT inclut forfait
-    lignesHTML += `<tr style="background:#FDF8E8;border-top:2px solid #E8D06A;">
+    lignesHTML += `<tr style="border-top:1px solid #EEE;">
       <td style="padding:8px 10px;" colspan="3">
         <div style="font-weight:500;font-size:12px;">Déplacement, protection et nettoyage</div>
         <div style="font-size:10px;color:#aaa;">Forfait 10% du total HT</div>
