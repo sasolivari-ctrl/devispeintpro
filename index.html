@@ -205,6 +205,7 @@ textarea.inp{min-height:130px;resize:vertical;line-height:1.7;}
   border-top:1px solid var(--gold-lt)!important;
 }
 .dv-forfait td{border-top:1px solid var(--cream2);}
+.dv-forfait:hover td{background:transparent!important;cursor:default;}
 .dv-prest-name{font-weight:500;}
 .dv-prest-note{font-size:10px;color:#aaa;margin-top:1px;}
 
@@ -2105,22 +2106,22 @@ function _renderDevisTable() {
   tableRows += `<tr class="dv-zone-header">
     <td colspan="5">— Déplacement, protection et nettoyage</td>
   </tr>
-  <tr class="dv-prestation">
+  <tr class="dv-prestation dv-forfait">
     <td style="border-bottom:none;padding-bottom:2px;">
       <input class="dv-edit-cell" value="Déplacement, protection et nettoyage 10%" readonly style="font-weight:500;">
     </td>
     <td style="border-bottom:none;padding-bottom:2px;">
-      <span style="font-size:12px;color:#aaa;">forfait</span>
+      <span style="font-size:12px;color:var(--ink);">forfait</span>
     </td>
     <td style="border-bottom:none;padding-bottom:2px;text-align:right;">
-      <span style="font-size:12px;color:#aaa;">10%</span>
+      <span style="font-size:12px;color:var(--ink);">10%</span>
     </td>
     <td style="border-bottom:none;padding-bottom:2px;text-align:right;">
       <span style="font-size:12px;color:#aaa;"></span>
     </td>
     <td style="text-align:right;border-bottom:none;padding-bottom:2px;font-weight:700;" id="tot-forfait">${fEuro(forfait)}</td>
   </tr>
-  <tr>
+  <tr class="dv-forfait">
     <td colspan="5" style="padding:0 10px 6px 10px;border-bottom:1px solid var(--cream2);">
       <span style="font-size:10px;color:#aaa;font-style:italic;">Forfait 10% du total HT</span>
     </td>
@@ -3666,12 +3667,15 @@ window.addEventListener('beforeprint', function() {
   });
 
   const forfait = sousTotal * 0.10;
-  printRows += `<tr class="dv-prestation">
-    <td><div class="dv-prest-name">Déplacement, protection et nettoyage</div>
+  printRows += `<tr class="dv-zone-header">
+    <td colspan="5">— Déplacement, protection et nettoyage</td>
+  </tr>
+  <tr class="dv-prestation">
+    <td><div class="dv-prest-name">Déplacement, protection et nettoyage 10%</div>
         <div class="dv-prest-note">Forfait 10% du total HT</div></td>
-    <td style="color:#aaa;">forfait</td>
-    <td style="text-align:right;color:#aaa;">10%</td>
-    <td style="text-align:right;color:#aaa;">—</td>
+    <td>forfait</td>
+    <td style="text-align:right;">10%</td>
+    <td style="text-align:right;"></td>
     <td style="text-align:right;font-weight:700;">${fEuro(forfait)}</td>
   </tr>`;
 
