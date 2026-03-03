@@ -204,7 +204,7 @@ textarea.inp{min-height:130px;resize:vertical;line-height:1.7;}
   text-align:right!important;
   border-top:1px solid var(--gold-lt)!important;
 }
-.dv-forfait td{background:var(--gold-pale);border-top:2px solid var(--gold-lt);}
+.dv-forfait td{border-top:1px solid var(--cream2);}
 .dv-prest-name{font-weight:500;}
 .dv-prest-note{font-size:10px;color:#aaa;margin-top:1px;}
 
@@ -529,7 +529,7 @@ textarea.inp{min-height:130px;resize:vertical;line-height:1.7;}
   .dv-piece-header td{background:#111820!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
   .dv-zone-header td{background:#F0EDE8!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
   .dv-piece-subtotal td{background:#FDF8E8!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
-  .dv-forfait td{background:#FDF8E8!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .dv-forfait td{background:#F5F2EC!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
   .dv-table th{background:#2A3240!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
 
   /* Inputs editables -> texte pur */
@@ -2102,12 +2102,10 @@ function _renderDevisTable() {
 
   // Forfait
   const forfait = sousTotal * 0.10;
-  tableRows += `<tr class="dv-forfait">
-    <td><div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--ink2);">Déplacement, protection et nettoyage</div>
-        <div class="dv-prest-note">Forfait 10% du total HT</div></td>
-    <td style="color:#aaa;">forfait</td><td></td>
-    <td style="text-align:right;color:#aaa;">10%</td>
-    <td style="text-align:right;" id="tot-forfait">${fEuro(forfait)}</td>
+  tableRows += `<tr class="dv-zone-header">
+    <td colspan="4"><div>Déplacement, protection et nettoyage</div>
+        <div class="dv-prest-note" style="font-style:italic;">Forfait 10% du total HT</div></td>
+    <td style="text-align:right;font-weight:700;" id="tot-forfait">${fEuro(forfait)}</td>
   </tr>`;
 
   const totalHT = sousTotal + forfait;
@@ -3650,12 +3648,10 @@ window.addEventListener('beforeprint', function() {
   });
 
   const forfait = sousTotal * 0.10;
-  printRows += `<tr class="dv-forfait">
-    <td><div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--ink2);">Déplacement, protection et nettoyage</div>
-        <div class="dv-prest-note">Forfait 10% du total HT des prestations</div></td>
-    <td style="color:#aaa;">forfait</td><td></td>
-    <td style="text-align:right;color:#aaa;">10%</td>
-    <td style="text-align:right;">${fEuro(forfait)}</td>
+  printRows += `<tr class="dv-zone-header">
+    <td colspan="4"><div>Déplacement, protection et nettoyage</div>
+        <div class="dv-prest-note" style="font-style:italic;">Forfait 10% du total HT des prestations</div></td>
+    <td style="text-align:right;font-weight:700;">${fEuro(forfait)}</td>
   </tr>`;
 
   tbody.innerHTML = printRows;
