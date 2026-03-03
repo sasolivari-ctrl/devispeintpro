@@ -1156,14 +1156,14 @@ function genererPDF(doc, type = 'devis') {
           </tr>`;
         });
         if (zoneRows) {
-          pieceRows += `<tr><td colspan="5" style="padding:5px 10px 4px 18px;background:#F5F2EC;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:#888;border-left:3px solid #C8951E;">— ${escapeHTML(zone.zone)}</td></tr>`;
+          pieceRows += `<tr><td colspan="5" style="padding:5px 10px 4px 18px;background:#F5F2EC!important;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:#888;border-left:3px solid #C8951E;-webkit-print-color-adjust:exact;print-color-adjust:exact;">— ${escapeHTML(zone.zone)}</td></tr>`;
           pieceRows += zoneRows;
         }
       });
       if (pieceRows) {
-        lignesHTML += `<tr><td colspan="5" style="padding:9px 10px;background:#111820;font-family:Georgia,serif;font-size:13px;font-weight:700;color:#C8951E;letter-spacing:.3px;">📍 ${escapeHTML(piece.nom)}</td></tr>`;
+        lignesHTML += `<tr><td colspan="5" style="padding:9px 10px;background:#111820!important;font-family:Georgia,serif;font-size:13px;font-weight:700;color:#C8951E!important;letter-spacing:.3px;-webkit-print-color-adjust:exact;print-color-adjust:exact;">📍 ${escapeHTML(piece.nom)}</td></tr>`;
         lignesHTML += pieceRows;
-        lignesHTML += `<tr><td colspan="4" style="padding:6px 10px;text-align:right;font-size:11px;font-weight:700;color:#C8951E;background:#FDF8E8;border-top:1px solid #E8D06A;">Sous-total ${escapeHTML(piece.nom)}</td><td style="padding:6px 10px;text-align:right;font-weight:700;color:#C8951E;background:#FDF8E8;border-top:1px solid #E8D06A;">${pieceTotal.toFixed(2)} €</td></tr>`;
+        lignesHTML += `<tr><td colspan="4" style="padding:6px 10px;text-align:right;font-size:11px;font-weight:700;color:#C8951E!important;background:#FDF8E8!important;border-top:1px solid #E8D06A;-webkit-print-color-adjust:exact;print-color-adjust:exact;">Sous-total ${escapeHTML(piece.nom)}</td><td style="padding:6px 10px;text-align:right;font-weight:700;color:#C8951E!important;background:#FDF8E8!important;border-top:1px solid #E8D06A;-webkit-print-color-adjust:exact;print-color-adjust:exact;">${pieceTotal.toFixed(2)} €</td></tr>`;
       }
     });
 
@@ -1213,28 +1213,28 @@ function genererPDF(doc, type = 'devis') {
   const docDate   = doc.date   || dateStr;
 
   const PDF_CSS = `
-    *{margin:0;padding:0;box-sizing:border-box;}
+    *{margin:0;padding:0;box-sizing:border-box;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}
     body{font-family:'Segoe UI',Arial,sans-serif;font-size:13px;color:#1A1A2E;background:#fff;padding:20px;}
     @media print{body{padding:0;}@page{margin:15mm 12mm;}}
-    .header{background:#111820;color:#fff;padding:20px 24px;border-radius:8px;display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;}
-    .company{font-size:18px;font-family:Georgia,serif;color:#C8951E;font-weight:700;margin-bottom:4px;}
-    .meta{font-size:11px;color:rgba(255,255,255,.5);line-height:1.6;}
-    .doc-num{font-size:22px;font-family:Georgia,serif;color:#C8951E;text-align:right;}
-    .doc-badge{background:#C8951E;color:#111820;font-size:11px;font-weight:700;padding:3px 10px;border-radius:4px;display:inline-block;margin-top:4px;}
-    .client-block{padding:16px;background:#F8F6F0;border-radius:8px;margin-bottom:20px;}
+    .header{background:#111820!important;color:#fff;padding:20px 24px;border-radius:8px;display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+    .company{font-size:18px;font-family:Georgia,serif;color:#C8951E!important;font-weight:700;margin-bottom:4px;}
+    .meta{font-size:11px;color:rgba(255,255,255,.6);line-height:1.6;}
+    .doc-num{font-size:22px;font-family:Georgia,serif;color:#C8951E!important;text-align:right;}
+    .doc-badge{background:#C8951E!important;color:#111820!important;font-size:11px;font-weight:700;padding:3px 10px;border-radius:4px;display:inline-block;margin-top:4px;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+    .client-block{padding:16px;background:#F8F6F0!important;border-radius:8px;margin-bottom:20px;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
     .client-name{font-size:15px;font-weight:700;margin-bottom:4px;}
     .client-info{font-size:12px;color:#888;line-height:1.6;}
-    .objet{background:#111820;color:#C8951E;padding:7px 14px;border-radius:6px;font-size:12px;font-weight:600;margin-bottom:16px;}
+    .objet{background:#111820!important;color:#C8951E!important;padding:7px 14px;border-radius:6px;font-size:12px;font-weight:600;margin-bottom:16px;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
     table{width:100%;border-collapse:collapse;}
-    thead tr th{background:#2A3240;color:#C8951E;padding:8px 10px;font-size:10px;text-transform:uppercase;letter-spacing:.5px;text-align:left;}
+    thead tr th{background:#2A3240!important;color:#C8951E!important;padding:8px 10px;font-size:10px;text-transform:uppercase;letter-spacing:.5px;text-align:left;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
     thead tr th:last-child{text-align:right;}
     .totaux{margin-top:12px;display:flex;justify-content:flex-end;}
     .totaux-inner{width:280px;border:1px solid #EEE;border-radius:8px;overflow:hidden;}
     .tot-row{display:flex;justify-content:space-between;padding:7px 14px;border-bottom:1px solid #EEE;font-size:12px;}
     .tot-row:last-child{border-bottom:none;}
-    .tot-row.ttc{background:#111820;color:#fff;font-size:14px;font-weight:700;}
-    .tot-row.ttc span:last-child{color:#C8951E;}
-    .tot-row.acompte{background:#FDF8E8;font-size:11px;color:#8A6500;}
+    .tot-row.ttc{background:#111820!important;color:#fff!important;font-size:14px;font-weight:700;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+    .tot-row.ttc span:last-child{color:#C8951E!important;}
+    .tot-row.acompte{background:#FDF8E8!important;font-size:11px;color:#8A6500!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
     .doc-footer{margin-top:24px;padding-top:14px;border-top:1px solid #EEE;font-size:10px;color:#bbb;text-align:center;line-height:1.6;}
     .btn-print{position:fixed;bottom:20px;right:20px;padding:12px 22px;background:#111820;color:#C8951E;border:none;border-radius:9px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;}
     @media print{.btn-print{display:none;}}
