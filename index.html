@@ -727,6 +727,10 @@ textarea.inp{min-height:130px;resize:vertical;line-height:1.7;}
                 <div class="panel-sub" style="margin:0;">Coordonnées du client pour ce devis</div>
                 <button type="button" onclick="choisirClientExistant()" style="padding:5px 12px;background:var(--gold);color:var(--ink);border:none;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;">👥 Choisir un client</button>
               </div>
+              <div style="display:flex;gap:0;margin-bottom:12px;border:1.5px solid #E2DDD4;border-radius:9px;overflow:hidden;">
+                <button type="button" id="dv-tab-part" onclick="dvToggleType('particulier')" style="flex:1;padding:8px;border:none;font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;background:var(--ink);color:var(--gold);">👤 Particulier</button>
+                <button type="button" id="dv-tab-pro" onclick="dvToggleType('pro')" style="flex:1;padding:8px;border:none;border-left:1.5px solid #E2DDD4;font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;background:#F5F5F5;color:#888;">🏢 Professionnel</button>
+              </div>
               <div class="grid-2">
                 <div class="field">
                   <label>Prénom</label>
@@ -2434,16 +2438,16 @@ function saveDevis(num, client, objet, ttc, lignes) {
   if (btn) { btn.textContent='✓ Enregistré'; btn.className='btn-dv btn-dv-saved'; }
   // Auto-créer ou màj la fiche client
   const ci = getClientInfo();
-  if (ci.nom && ci.nom !== 'Client') {
-    const nomComplet = (ci.prenom ? ci.prenom + ' ' : '') + ci.nom;
-    const exist = clientsList.find(cl => cl.nom === ci.nom && (!ci.prenom || cl.prenom === ci.prenom));
+  if (ci.nom && ci.nom.length >= 2) {
+    const tabPro = document.getElementById('dv-tab-pro');
+    const isPro  = tabPro && tabPro.style.background.includes('111');
+    const exist  = clientsList.find(cl => cl.nom === ci.nom && cl.prenom === (ci.prenom||''));
     if (!exist) {
-      clientsList.push({type:'particulier', prenom:ci.prenom||'', nom:ci.nom, tel:ci.tel||'', email:ci.email||'', adresse:ci.adresse||'', cp:'', ville:'', siret:'', notes:''});
+      clientsList.push({type: isPro ? 'pro' : 'particulier', prenom:ci.prenom||'', nom:ci.nom, tel:ci.tel||'', email:ci.email||'', adresse:ci.adresse||'', cp:'', ville:'', siret:'', notes:''});
       if ($('nb-clients')) $('nb-clients').textContent = clientsList.length;
     } else {
-      // Mettre à jour tel/email/adresse si vides
-      if (!exist.tel && ci.tel) exist.tel = ci.tel;
-      if (!exist.email && ci.email) exist.email = ci.email;
+      if (!exist.tel    && ci.tel)     exist.tel     = ci.tel;
+      if (!exist.email  && ci.email)   exist.email   = ci.email;
       if (!exist.adresse && ci.adresse) exist.adresse = ci.adresse;
     }
   }
@@ -2451,6 +2455,17 @@ function saveDevis(num, client, objet, ttc, lignes) {
   showToast(num + ' enregistré ✓','ok');
   // Sauvegarder immédiatement dans Supabase (ou localStorage en fallback)
   sauvegarder();
+}
+
+function dvToggleType(type) {
+  const isPro = type === 'pro';
+  const tabPart = document.getElementById('dv-tab-part');
+  const tabPro  = document.getElementById('dv-tab-pro');
+  if (!tabPart || !tabPro) return;
+  tabPart.style.background = isPro ? '#F5F5F5' : 'var(--ink)';
+  tabPart.style.color      = isPro ? '#888'    : 'var(--gold)';
+  tabPro.style.background  = isPro ? 'var(--ink)' : '#F5F5F5';
+  tabPro.style.color       = isPro ? 'var(--gold)' : '#888';
 }
 
 function choisirClientExistant() {
@@ -2477,11 +2492,12 @@ function choisirClientExistant() {
 function remplirClientDevis(idx) {
   const cl = clientsList[idx];
   if (!cl) return;
-  if ($('c-prenom')) $('c-prenom').value = cl.prenom || '';
-  if ($('c-nom'))    $('c-nom').value    = cl.nom || '';
-  if ($('c-tel'))    $('c-tel').value    = cl.tel || '';
-  if ($('c-email'))  $('c-email').value  = cl.email || '';
-  if ($('c-adresse'))$('c-adresse').value = [cl.adresse, cl.cp, cl.ville].filter(Boolean).join(', ');
+  if ($('c-prenom'))  $('c-prenom').value  = cl.prenom || '';
+  if ($('c-nom'))     $('c-nom').value     = cl.nom    || '';
+  if ($('c-tel'))     $('c-tel').value     = cl.tel    || '';
+  if ($('c-email'))   $('c-email').value   = cl.email  || '';
+  if ($('c-adresse')) $('c-adresse').value = [cl.adresse, cl.cp, cl.ville].filter(Boolean).join(', ');
+  dvToggleType(cl.type === 'pro' ? 'pro' : 'particulier');
   document.getElementById('pick-client-modal')?.remove();
   showToast('Client chargé ✓', 'ok');
 }
@@ -4454,11 +4470,13 @@ async function chargerDonnees() {
   }));
 
   // Clients
-  const {data:clts} = await supa.from('clients').select('*').eq('user_id',uid).order('nom',{ascending:true});
-  if (clts) clientsList = clts.map(cl => ({
-    _id:cl.id, type:cl.type||'particulier', prenom:cl.prenom||'', nom:cl.nom||'', tel:cl.tel||'', email:cl.email||'',
-    adresse:cl.adresse||'', cp:cl.cp||'', ville:cl.ville||'', siret:cl.siret||'', notes:cl.notes||''
-  }));
+  try {
+    const {data:clts, error:eClts} = await supa.from('clients').select('*').eq('user_id',uid).order('nom',{ascending:true});
+    if (!eClts && clts) clientsList = clts.map(cl => ({
+      _id:cl.id, type:cl.type||'particulier', prenom:cl.prenom||'', nom:cl.nom||'', tel:cl.tel||'', email:cl.email||'',
+      adresse:cl.adresse||'', cp:cl.cp||'', ville:cl.ville||'', siret:cl.siret||'', notes:cl.notes||''
+    }));
+  } catch(e) { console.warn('Chargement clients ignoré:', e?.message); }
 
   // Fournisseurs
   const {data:fourns} = await supa.from('fournisseurs').select('*').eq('user_id',uid).order('updated_at',{ascending:false}).limit(1);
