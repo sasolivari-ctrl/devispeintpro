@@ -1139,7 +1139,7 @@ function genererPDFHTML(doc, type) {
     sousTotal = doc.montant;
   } else {
     // Devis ou facture standard — itérer sur les pièces
-    const pieces = doc.pieces || (_devisModel ? _devisModel.pieces : []);
+    const pieces = doc.pieces && doc.pieces.length ? doc.pieces : (_devisModel && !doc.num ? _devisModel.pieces : []);
     pieces.forEach(piece => {
       let pieceTotal = 0;
       let pieceRows  = '';
@@ -1202,10 +1202,18 @@ function genererPDFHTML(doc, type) {
       <div class="tot-row ttc"><span>MONTANT À RÉGLER</span><span>${fEuro(ttc)}</span></div>
     </div></div>`;
   } else if (isFacture) {
+    // Chercher acomptes versés liés à ce devis
+    const acomptesVerses = (typeof facturesList !== 'undefined' ? facturesList : [])
+      .filter(fa => fa.type === 'Acompte' && fa.devisNum === doc.devisNum && fa.statut === 'Payée');
+    const totalAcompte = acomptesVerses.reduce((s, fa) => s + (fa.montant || 0), 0);
+    const resteAPayer = ttc - totalAcompte;
     totauxHTML = `<div class="totaux"><div class="totaux-inner">
       <div class="tot-row"><span>Total HT</span><span>${totalHT.toFixed(2)} €</span></div>
       <div class="tot-row"><span>TVA (${Math.round(e.tvaR*100)}%)</span><span>${tva.toFixed(2)} €</span></div>
       <div class="tot-row ttc"><span>TOTAL TTC</span><span>${fEuro(ttc)}</span></div>
+      ${totalAcompte > 0 ? `
+      <div class="tot-row" style="color:#1A6B57;"><span>Acompte versé</span><span>− ${fEuro(totalAcompte)}</span></div>
+      <div class="tot-row ttc" style="background:#1A3A2A!important;"><span>RESTE À PAYER</span><span>${fEuro(resteAPayer)}</span></div>` : ''}
     </div></div>`;
   } else {
     // Devis
