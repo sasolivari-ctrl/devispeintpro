@@ -752,6 +752,10 @@ textarea.inp{min-height:130px;resize:vertical;line-height:1.7;}
                   <label>Adresse du chantier</label>
                   <input class="inp" id="c-adresse" placeholder="12 rue des Lilas, 69000 Lyon" aria-label="Adresse du chantier">
                 </div>
+                <div class="field col-span-2" id="dv-siret-block" style="display:none;">
+                  <label>SIRET</label>
+                  <input class="inp" id="c-siret" placeholder="123 456 789 00012">
+                </div>
                 <div class="field col-span-2">
                   <label>Objet des travaux</label>
                   <input class="inp" id="c-objet" placeholder="Rénovation appartement T3 — 75 m²" aria-label="Objet des travaux">
@@ -1112,12 +1116,13 @@ function getProfilInfo() {
 /** Source unique de vérité pour les données client (devis en cours) */
 function getClientInfo() {
   return {
-    prenom:  $('c-prenom')?.value || '',
-    nom:     $('c-nom')?.value    || 'Client',
-    tel:     $('c-tel')?.value    || '',
-    email:   $('c-email')?.value  || '',
-    adresse: $('c-adresse')?.value|| '',
-    objet:   $('c-objet')?.value  || 'Travaux de peinture',
+    prenom:  $('c-prenom')?.value?.trim() || '',
+    nom:     $('c-nom')?.value?.trim()    || '',
+    tel:     $('c-tel')?.value?.trim()    || '',
+    email:   $('c-email')?.value?.trim()  || '',
+    adresse: $('c-adresse')?.value?.trim()|| '',
+    siret:   $('c-siret')?.value?.trim()  || '',
+    objet:   $('c-objet')?.value?.trim()  || 'Travaux de peinture',
   };
 }
 
@@ -2443,7 +2448,7 @@ function saveDevis(num, client, objet, ttc, lignes) {
     const isPro  = tabPro && tabPro.style.background.includes('111');
     const exist  = clientsList.find(cl => cl.nom === ci.nom && cl.prenom === (ci.prenom||''));
     if (!exist) {
-      clientsList.push({type: isPro ? 'pro' : 'particulier', prenom:ci.prenom||'', nom:ci.nom, tel:ci.tel||'', email:ci.email||'', adresse:ci.adresse||'', cp:'', ville:'', siret:'', notes:''});
+      clientsList.push({type: isPro ? 'pro' : 'particulier', prenom:ci.prenom||'', nom:ci.nom, tel:ci.tel||'', email:ci.email||'', adresse:ci.adresse||'', cp:'', ville:'', siret:ci.siret||'', notes:''});
       if ($('nb-clients')) $('nb-clients').textContent = clientsList.length;
     } else {
       if (!exist.tel    && ci.tel)     exist.tel     = ci.tel;
@@ -2466,6 +2471,15 @@ function dvToggleType(type) {
   tabPart.style.color      = isPro ? '#888'    : 'var(--gold)';
   tabPro.style.background  = isPro ? 'var(--ink)' : '#F5F5F5';
   tabPro.style.color       = isPro ? 'var(--gold)' : '#888';
+  // SIRET visible seulement en pro
+  const siretBlock = document.getElementById('dv-siret-block');
+  if (siretBlock) siretBlock.style.display = isPro ? '' : 'none';
+  // Label nom adapté
+  const nomLabel = document.querySelector('label[for="c-nom"], #c-nom')?.closest('.field')?.querySelector('label');
+  if (nomLabel) nomLabel.textContent = isPro ? 'Société *' : 'Nom *';
+  // Prénom masqué en pro
+  const prenomField = document.getElementById('c-prenom')?.closest('.field');
+  if (prenomField) prenomField.style.display = isPro ? 'none' : '';
 }
 
 function choisirClientExistant() {
@@ -2497,6 +2511,7 @@ function remplirClientDevis(idx) {
   if ($('c-tel'))     $('c-tel').value     = cl.tel    || '';
   if ($('c-email'))   $('c-email').value   = cl.email  || '';
   if ($('c-adresse')) $('c-adresse').value = [cl.adresse, cl.cp, cl.ville].filter(Boolean).join(', ');
+  if ($('c-siret'))   $('c-siret').value   = cl.siret  || '';
   dvToggleType(cl.type === 'pro' ? 'pro' : 'particulier');
   document.getElementById('pick-client-modal')?.remove();
   showToast('Client chargé ✓', 'ok');
