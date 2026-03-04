@@ -4521,13 +4521,15 @@ async function sauvegarder() {
 
     // Clients
     for (const cl of clientsList) {
-      const row = {user_id:uid, type:cl.type||'particulier', prenom:cl.prenom||'', nom:cl.nom, tel:cl.tel||'', email:cl.email||'', adresse:cl.adresse||'', cp:cl.cp||'', ville:cl.ville||'', siret:cl.siret||'', notes:cl.notes||''};
-      if (cl._id) {
-        await supa.from('clients').update(row).eq('id', cl._id);
-      } else {
-        const {data:cd} = await supa.from('clients').insert(row).select();
-        if (cd && cd[0]) cl._id = cd[0].id;
-      }
+      try {
+        const row = {user_id:uid, type:cl.type||'particulier', prenom:cl.prenom||'', nom:cl.nom, tel:cl.tel||'', email:cl.email||'', adresse:cl.adresse||'', cp:cl.cp||'', ville:cl.ville||'', siret:cl.siret||'', notes:cl.notes||''};
+        if (cl._id) {
+          await supa.from('clients').update(row).eq('id', cl._id);
+        } else {
+          const {data:cd, error:eCl} = await supa.from('clients').insert(row).select();
+          if (!eCl && cd && cd[0]) cl._id = cd[0].id;
+        }
+      } catch(eCl) { console.warn('Client save error (ignoré):', eCl?.message); }
     }
 
     // Fournisseurs (1 row par user)
