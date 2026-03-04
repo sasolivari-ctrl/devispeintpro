@@ -1212,7 +1212,7 @@ function genererPDFHTML(doc, type) {
       <div class="tot-row"><span>TVA (${Math.round(e.tvaR*100)}%)</span><span>${tva.toFixed(2)} €</span></div>
       <div class="tot-row"><span>TOTAL TTC</span><span style="font-weight:700;">${fEuro(ttc)}</span></div>
       ${totalAcompte > 0 ? `
-      <div class="tot-row ttc" style="background:#1A6B57!important;font-size:14px;font-weight:700;"><span>Acompte versé</span><span>− ${fEuro(totalAcompte)}</span></div>
+      <div class="tot-row ttc" style="background:#C8951E!important;color:#111820!important;font-size:14px;font-weight:700;"><span>Acompte versé</span><span>− ${fEuro(totalAcompte)}</span></div>
       <div class="tot-row ttc" style="background:#111820!important;font-size:14px;font-weight:700;"><span>RESTE À PAYER</span><span>${fEuro(resteAPayer)}</span></div>` : ''}
     </div></div>`;
   } else {
