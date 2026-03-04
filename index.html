@@ -624,6 +624,10 @@ textarea.inp{min-height:130px;resize:vertical;line-height:1.7;}
         <span class="nav-icon" aria-hidden="true">🧾</span> Mes factures
         <span class="nav-badge" id="nb-factures" aria-live="polite">0</span>
       </div>
+      <div class="nav-item" data-view="clients" onclick="showView('clients')" role="button" tabindex="0" aria-label="Mes clients">
+        <span class="nav-icon" aria-hidden="true">👥</span> Mes clients
+        <span class="nav-badge" id="nb-clients" aria-live="polite">0</span>
+      </div>
       <div class="nav-item" data-view="tarifs" onclick="showView('tarifs')" role="button" tabindex="0" aria-label="Mes tarifs">
         <span class="nav-icon" aria-hidden="true">💶</span> Mes tarifs
       </div>
@@ -863,6 +867,8 @@ textarea.inp{min-height:130px;resize:vertical;line-height:1.7;}
       </div>
 
       <!-- ── TARIFS ── -->
+      <div class="view" id="view-clients"></div>
+
       <div class="view" id="view-tarifs">
         <div class="card" style="padding:22px;">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
@@ -1309,6 +1315,104 @@ ${totauxHTML}
   return html;
 }
 
+
+// ── CLIENTS ───────────────────────────────────────────────────────────────────
+function renderClients() {
+  const view = $('view-clients');
+  if (!view) return;
+  if ($('nb-clients')) $('nb-clients').textContent = clientsList.length;
+
+  view.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
+      <div style="font-family:'Playfair Display',serif;font-size:20px;">Mes clients</div>
+      <button onclick="ouvrirModalClient(-1)" style="padding:9px 18px;background:var(--ink);color:var(--gold);border:none;border-radius:9px;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;">+ Nouveau client</button>
+    </div>
+    ${clientsList.length === 0 ? `<div style="text-align:center;padding:60px 20px;color:#bbb;font-size:14px;">Aucun client enregistré — cliquez sur "+ Nouveau client" pour commencer</div>`
+    : `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;">
+        ${clientsList.map((cl,i) => `
+          <div style="background:#fff;border:1px solid var(--cream2);border-radius:12px;padding:18px;box-shadow:0 2px 8px rgba(0,0,0,.04);">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">
+              <div style="font-weight:700;font-size:15px;color:var(--ink);">${escapeHTML(cl.nom||'Sans nom')}</div>
+              <div style="display:flex;gap:6px;">
+                <button onclick="ouvrirModalClient(${i})" style="padding:4px 10px;background:var(--cream);border:1px solid var(--cream2);border-radius:6px;font-size:11px;cursor:pointer;font-weight:600;">✏️ Modifier</button>
+                <button onclick="supprimerClient(${i})" style="padding:4px 8px;background:#fff;border:1px solid #fcc;border-radius:6px;font-size:11px;cursor:pointer;color:#c00;">✕</button>
+              </div>
+            </div>
+            ${cl.tel ? `<div style="font-size:12px;color:#666;margin-bottom:4px;">📞 ${escapeHTML(cl.tel)}</div>` : ''}
+            ${cl.email ? `<div style="font-size:12px;color:#666;margin-bottom:4px;">✉️ ${escapeHTML(cl.email)}</div>` : ''}
+            ${cl.adresse ? `<div style="font-size:12px;color:#666;margin-bottom:4px;">📍 ${escapeHTML(cl.adresse)}</div>` : ''}
+            ${cl.siret ? `<div style="font-size:12px;color:#aaa;margin-bottom:4px;">SIRET : ${escapeHTML(cl.siret)}</div>` : ''}
+            ${cl.notes ? `<div style="font-size:11px;color:#aaa;margin-top:8px;padding-top:8px;border-top:1px solid var(--cream2);font-style:italic;">${escapeHTML(cl.notes)}</div>` : ''}
+          </div>
+        `).join('')}
+      </div>`}
+  `;
+}
+
+function ouvrirModalClient(idx) {
+  const ex = document.getElementById('client-modal'); if (ex) ex.remove();
+  const cl = idx >= 0 ? clientsList[idx] : {nom:'',tel:'',email:'',adresse:'',siret:'',notes:''};
+  const titre = idx >= 0 ? 'Modifier le client' : 'Nouveau client';
+  const m = document.createElement('div');
+  m.id = 'client-modal';
+  m.className = 'modal-overlay';
+  m.innerHTML = `<div style="background:#fff;border-radius:16px;padding:28px;width:100%;max-width:480px;box-shadow:0 20px 60px rgba(0,0,0,.3);font-family:'Plus Jakarta Sans',sans-serif;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+      <div style="font-family:'Playfair Display',serif;font-size:18px;">${titre}</div>
+      <button onclick="document.getElementById('client-modal').remove()" style="background:none;border:none;font-size:22px;cursor:pointer;color:#aaa;">×</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div><label style="font-size:12px;font-weight:700;color:#555;display:block;margin-bottom:4px;">Nom *</label>
+        <input id="cl-nom" class="inp" value="${escapeHTML(cl.nom)}" placeholder="Nom du client" style="width:100%;"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div><label style="font-size:12px;font-weight:700;color:#555;display:block;margin-bottom:4px;">Téléphone</label>
+          <input id="cl-tel" class="inp" value="${escapeHTML(cl.tel)}" placeholder="06 00 00 00 00" style="width:100%;"></div>
+        <div><label style="font-size:12px;font-weight:700;color:#555;display:block;margin-bottom:4px;">Email</label>
+          <input id="cl-email" class="inp" type="email" value="${escapeHTML(cl.email)}" placeholder="client@email.com" style="width:100%;"></div>
+      </div>
+      <div><label style="font-size:12px;font-weight:700;color:#555;display:block;margin-bottom:4px;">Adresse</label>
+        <input id="cl-adresse" class="inp" value="${escapeHTML(cl.adresse)}" placeholder="Adresse complète" style="width:100%;"></div>
+      <div><label style="font-size:12px;font-weight:700;color:#555;display:block;margin-bottom:4px;">SIRET</label>
+        <input id="cl-siret" class="inp" value="${escapeHTML(cl.siret)}" placeholder="123 456 789 00012" style="width:100%;"></div>
+      <div><label style="font-size:12px;font-weight:700;color:#555;display:block;margin-bottom:4px;">Notes</label>
+        <textarea id="cl-notes" class="inp" rows="3" placeholder="Notes libres..." style="width:100%;line-height:1.5;">${escapeHTML(cl.notes)}</textarea></div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:18px;">
+      <button onclick="document.getElementById('client-modal').remove()" style="flex:1;padding:11px;background:#F5F5F5;border:1.5px solid #E2DDD4;border-radius:9px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;">Annuler</button>
+      <button onclick="sauvegarderClient(${idx})" style="flex:2;padding:11px;background:var(--ink);color:var(--gold);border:none;border-radius:9px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;">💾 Enregistrer</button>
+    </div>
+  </div>`;
+  document.body.appendChild(m);
+  setTimeout(() => document.getElementById('cl-nom')?.focus(), 100);
+}
+
+function sauvegarderClient(idx) {
+  const nom = document.getElementById('cl-nom')?.value?.trim();
+  if (!nom) { showToast('Le nom est obligatoire', 'err'); return; }
+  const cl = {
+    nom, tel: document.getElementById('cl-tel')?.value?.trim()||'',
+    email: document.getElementById('cl-email')?.value?.trim()||'',
+    adresse: document.getElementById('cl-adresse')?.value?.trim()||'',
+    siret: document.getElementById('cl-siret')?.value?.trim()||'',
+    notes: document.getElementById('cl-notes')?.value?.trim()||''
+  };
+  if (idx >= 0) { cl._id = clientsList[idx]._id; clientsList[idx] = cl; }
+  else clientsList.unshift(cl);
+  document.getElementById('client-modal')?.remove();
+  renderClients();
+  sauvegarder();
+  showToast(idx >= 0 ? 'Client mis à jour ✓' : 'Client ajouté ✓', 'ok');
+}
+
+function supprimerClient(idx) {
+  if (!confirm('Supprimer ce client ?')) return;
+  const cl = clientsList[idx];
+  if (cl._id) supa.from('clients').delete().eq('id', cl._id);
+  clientsList.splice(idx, 1);
+  renderClients();
+  showToast('Client supprimé', 'ok');
+}
+
 // ── TARIFS ──────────────────────────────────────────────────────────────────
 const TARIFS = [
   {cat:"Préparation",p:"Lessivage murs/plafonds",u:"m2",prix:8,n:"Lessivage St-Marc et rinçage"},
@@ -1356,7 +1460,7 @@ let recognition = null;
 let isRecording = false;
 
 // ── VIEWS ────────────────────────────────────────────────────────────────────
-const TITLES = {dashboard:'Tableau de bord',nouveau:'Nouveau devis',historique:'Mes devis',factures:'🧾 Mes factures',tarifs:'Mes tarifs',rentabilite:'📈 Rentabilité chantier',fournitures:'🛒 Bon de commande fournitures','import-export':'🔄 Import / Export','fournisseurs':'🏪 Mes fournisseurs & prix d\'achat','profil':'Mon entreprise'};
+const TITLES = {clients:'👥 Mes clients',dashboard:'Tableau de bord',nouveau:'Nouveau devis',historique:'Mes devis',factures:'🧾 Mes factures',tarifs:'Mes tarifs',rentabilite:'📈 Rentabilité chantier',fournitures:'🛒 Bon de commande fournitures','import-export':'🔄 Import / Export','fournisseurs':'🏪 Mes fournisseurs & prix d\'achat','profil':'Mon entreprise'};
 
 function showView(name) {
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
@@ -1378,6 +1482,7 @@ function showView(name) {
     renderRentabilite(); 
   }
   if (name === 'import-export') renderImportExport();
+  if (name === 'clients')        renderClients();
   if (name === 'fournisseurs')  renderFournisseurs();
   if (name === 'fournitures')   renderFournitures();
   if (name === 'factures')      renderFactures();
@@ -3718,6 +3823,7 @@ function imprimerDevis() {
 
 // ── FACTURES ─────────────────────────────────────────────────────────────────
 let facturesList = [];
+let clientsList = [];
 
 function renderFactures() {
   const tbody = $('factures-tbody');
@@ -4186,6 +4292,8 @@ async function onLogin(user) {
   
   renderDashboard();
   if ($('nb-factures')) $('nb-factures').textContent = facturesList.length;
+  if ($('nb-clients')) $('nb-clients').textContent = clientsList.length;
+  if ($('nb-clients')) $('nb-clients').textContent = clientsList.length;
   setTimeout(appliquerProfil, 100);
 }
 
@@ -4200,6 +4308,7 @@ async function doLogout() {
   currentUser        = null;
   devisList          = [];
   facturesList       = [];
+  clientsList        = [];
   FOURNISSEURS       = [{id:'f1',nom:'Fournisseur exemple',contact:'',tel:'',email:'',produits:[]}];
   PRIX_ACHAT_MAP     = {};
   rentParams         = {fournitures:15, urssaf:47, deplacement:4};
@@ -4233,6 +4342,13 @@ async function chargerDonnees() {
     date:f.date, montant:f.montant, statut:f.statut, type:f.type||'Facture',
     lignes:f.lignes||[], pieces:f.pieces||[],
     acomptePct:f.acompte_pct||null, totalDevis:f.total_devis||null, _id:f.id
+  }));
+
+  // Clients
+  const {data:clts} = await supa.from('clients').select('*').eq('user_id',uid).order('nom',{ascending:true});
+  if (clts) clientsList = clts.map(cl => ({
+    _id:cl.id, nom:cl.nom||'', tel:cl.tel||'', email:cl.email||'',
+    adresse:cl.adresse||'', siret:cl.siret||'', notes:cl.notes||''
   }));
 
   // Fournisseurs
@@ -4291,6 +4407,17 @@ async function sauvegarder() {
         const {data, error} = await supa.from('factures').insert(row).select();
         if (error) throw error;
         if (data && data[0]) f._id = data[0].id;
+      }
+    }
+
+    // Clients
+    for (const cl of clientsList) {
+      const row = {user_id:uid, nom:cl.nom, tel:cl.tel||'', email:cl.email||'', adresse:cl.adresse||'', siret:cl.siret||'', notes:cl.notes||''};
+      if (cl._id) {
+        await supa.from('clients').update(row).eq('id', cl._id);
+      } else {
+        const {data:cd} = await supa.from('clients').insert(row).select();
+        if (cd && cd[0]) cl._id = cd[0].id;
       }
     }
 
