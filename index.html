@@ -4623,12 +4623,7 @@ document.addEventListener('input',e=>{
     clearTimeout(_saveTimer);
     _saveTimer=setTimeout(sauvegarder,1500);
   }
-  // Sync fiche client dès saisie dans le formulaire devis
-  const clientFields = ['c-prenom','c-nom','c-tel','c-email','c-adresse'];
-  if (clientFields.includes(e.target.id)) {
-    clearTimeout(_clientSyncTimer);
-    _clientSyncTimer = setTimeout(syncClientFromDevis, 800);
-  }
+  // Sync fiche client uniquement à la sauvegarde du devis (plus en temps réel)
 });
 
 // ── INIT ──────────────────────────────────────────────────────────────────────
