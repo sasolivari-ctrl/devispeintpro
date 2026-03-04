@@ -1,7 +1,11 @@
 // ── CLOUDFLARE PAGES FUNCTION ─────────────────────────────────────────────────
 // Equivalent du netlify/functions/claude.js — adapté pour Cloudflare Pages Functions
 
-const ALLOWED_ORIGIN   = 'https://devispeintpro.pages.dev';
+const ALLOWED_ORIGINS = [
+  'https://devispeintpro.pages.dev',
+  'https://devispeintpro.olivarionline.workers.dev',
+  'https://5233464e.devispeintpro.pages.dev',
+];
 const ALLOWED_MODEL    = 'claude-sonnet-4-20250514';
 const MAX_TOKENS_LIMIT = 2000;
 const MAX_MESSAGES     = 4;
@@ -41,7 +45,7 @@ function verifySupabaseToken(authHeader) {
 }
 
 function corsHeaders(origin) {
-  const allowed = origin === ALLOWED_ORIGIN ? origin : ALLOWED_ORIGIN;
+  const allowed = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
   return {
     'Access-Control-Allow-Origin':  allowed,
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
@@ -55,7 +59,7 @@ export async function onRequestPost(context) {
   const origin = request.headers.get('origin') || '';
 
   // CORS
-  if (origin && origin !== ALLOWED_ORIGIN) {
+  if (origin && !ALLOWED_ORIGINS.includes(origin)) {
     return new Response(JSON.stringify({ error: 'Origin non autorisée' }), {
       status: 403,
       headers: { 'Content-Type': 'application/json', ...corsHeaders(origin) },
