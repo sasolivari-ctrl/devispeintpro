@@ -723,11 +723,18 @@ textarea.inp{min-height:130px;resize:vertical;line-height:1.7;}
             <!-- Client -->
             <div class="panel">
               <div class="panel-hd"><div class="panel-icon">👤</div><div class="panel-title">Informations client</div></div>
-              <div class="panel-sub">Coordonnées du client pour ce devis</div>
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                <div class="panel-sub" style="margin:0;">Coordonnées du client pour ce devis</div>
+                <button type="button" onclick="choisirClientExistant()" style="padding:5px 12px;background:var(--gold);color:var(--ink);border:none;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;">👥 Choisir un client</button>
+              </div>
               <div class="grid-2">
-                <div class="field col-span-2">
+                <div class="field">
+                  <label>Prénom</label>
+                  <input class="inp" id="c-prenom" placeholder="Jean" aria-label="Prénom du client">
+                </div>
+                <div class="field">
                   <label>Nom / Société *</label>
-                  <input class="inp" id="c-nom" placeholder="M. Dupont ou Résidences du Parc" aria-label="Nom ou société du client" aria-required="true">
+                  <input class="inp" id="c-nom" placeholder="Dupont ou Résidences du Parc" aria-label="Nom ou société du client" aria-required="true">
                 </div>
                 <div class="field">
                   <label>Téléphone</label>
@@ -1101,6 +1108,7 @@ function getProfilInfo() {
 /** Source unique de vérité pour les données client (devis en cours) */
 function getClientInfo() {
   return {
+    prenom:  $('c-prenom')?.value || '',
     nom:     $('c-nom')?.value    || 'Client',
     tel:     $('c-tel')?.value    || '',
     email:   $('c-email')?.value  || '',
@@ -2424,10 +2432,58 @@ function saveDevis(num, client, objet, ttc, lignes) {
   devisList.unshift({num, client, objet, date:today, montant:ttc, statut:'En attente', lignes: lignes||[], pieces});
   const btn = $('btn-save-dv');
   if (btn) { btn.textContent='✓ Enregistré'; btn.className='btn-dv btn-dv-saved'; }
+  // Auto-créer ou màj la fiche client
+  const ci = getClientInfo();
+  if (ci.nom && ci.nom !== 'Client') {
+    const nomComplet = (ci.prenom ? ci.prenom + ' ' : '') + ci.nom;
+    const exist = clientsList.find(cl => cl.nom === ci.nom && (!ci.prenom || cl.prenom === ci.prenom));
+    if (!exist) {
+      clientsList.push({type:'particulier', prenom:ci.prenom||'', nom:ci.nom, tel:ci.tel||'', email:ci.email||'', adresse:ci.adresse||'', cp:'', ville:'', siret:'', notes:''});
+      if ($('nb-clients')) $('nb-clients').textContent = clientsList.length;
+    } else {
+      // Mettre à jour tel/email/adresse si vides
+      if (!exist.tel && ci.tel) exist.tel = ci.tel;
+      if (!exist.email && ci.email) exist.email = ci.email;
+      if (!exist.adresse && ci.adresse) exist.adresse = ci.adresse;
+    }
+  }
   renderDashboard();
   showToast(num + ' enregistré ✓','ok');
   // Sauvegarder immédiatement dans Supabase (ou localStorage en fallback)
   sauvegarder();
+}
+
+function choisirClientExistant() {
+  if (!clientsList.length) { showToast('Aucun client enregistré', 'err'); return; }
+  const ex = document.getElementById('pick-client-modal'); if (ex) ex.remove();
+  const m = document.createElement('div');
+  m.id = 'pick-client-modal';
+  m.className = 'modal-overlay';
+  m.innerHTML = '<div style="background:#fff;border-radius:16px;padding:24px;width:100%;max-width:440px;box-shadow:0 20px 60px rgba(0,0,0,.3);max-height:80vh;display:flex;flex-direction:column;">'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">'
+    + '<div style="font-size:18px;font-weight:700;">Choisir un client</div>'
+    + '<button onclick="document.getElementById(\'pick-client-modal\').remove()" style="background:none;border:none;font-size:22px;cursor:pointer;color:#aaa;">&#215;</button>'
+    + '</div>'
+    + '<div style="overflow-y:auto;display:flex;flex-direction:column;gap:8px;">'
+    + clientsList.map(function(cl,i){ return '<button onclick="remplirClientDevis(' + i + ')" style="text-align:left;padding:12px 14px;background:#F8F6F0;border:1.5px solid #E2DDD4;border-radius:9px;cursor:pointer;width:100%;">'
+      + '<div style="font-weight:700;font-size:13px;">' + escapeHTML((cl.prenom?cl.prenom+' ':'')+cl.nom) + '</div>'
+      + (cl.tel ? '<div style="font-size:11px;color:#888;">Tel: ' + escapeHTML(cl.tel) + '</div>' : '')
+      + (cl.email ? '<div style="font-size:11px;color:#888;">' + escapeHTML(cl.email) + '</div>' : '')
+      + '</button>'; }).join('')
+    + '</div></div>';
+  document.body.appendChild(m);
+}
+
+function remplirClientDevis(idx) {
+  const cl = clientsList[idx];
+  if (!cl) return;
+  if ($('c-prenom')) $('c-prenom').value = cl.prenom || '';
+  if ($('c-nom'))    $('c-nom').value    = cl.nom || '';
+  if ($('c-tel'))    $('c-tel').value    = cl.tel || '';
+  if ($('c-email'))  $('c-email').value  = cl.email || '';
+  if ($('c-adresse'))$('c-adresse').value = [cl.adresse, cl.cp, cl.ville].filter(Boolean).join(', ');
+  document.getElementById('pick-client-modal')?.remove();
+  showToast('Client chargé ✓', 'ok');
 }
 
 // ── PROFIL ────────────────────────────────────────────────────────────────────
@@ -4114,6 +4170,25 @@ let _lastTTC           = null;   // dernier montant TTC calculé
 let _lastNum           = null;   // dernier numéro de devis attribué
 let _lastClient        = null;   // dernier client traité
 let _saveTimer         = null;   // timer debounce sauvegarde auto
+let _clientSyncTimer   = null;   // timer debounce sync fiche client
+
+function syncClientFromDevis() {
+  const prenom  = $('c-prenom')?.value?.trim() || '';
+  const nom     = $('c-nom')?.value?.trim()    || '';
+  if (!nom || nom === 'Client') return;
+  const tel     = $('c-tel')?.value?.trim()     || '';
+  const email   = $('c-email')?.value?.trim()   || '';
+  const adresse = $('c-adresse')?.value?.trim() || '';
+  const exist   = clientsList.find(cl => cl.nom === nom && cl.prenom === prenom);
+  if (exist) {
+    if (tel)     exist.tel     = tel;
+    if (email)   exist.email   = email;
+    if (adresse) exist.adresse = adresse;
+  } else {
+    clientsList.push({ type:'particulier', prenom, nom, tel, email, adresse, cp:'', ville:'', siret:'', notes:'' });
+    if ($('nb-clients')) $('nb-clients').textContent = clientsList.length;
+  }
+}
 let _editableHTML      = null;   // HTML modifiable du devis en prévisualisation
 
 // ── MODAL AUTH ────────────────────────────────────────────────────────────────
@@ -4544,6 +4619,12 @@ document.addEventListener('input',e=>{
      e.target.classList.contains('prix-achat-input')||PROFILE_FIELDS.includes(e.target.id)){
     clearTimeout(_saveTimer);
     _saveTimer=setTimeout(sauvegarder,1500);
+  }
+  // Sync fiche client dès saisie dans le formulaire devis
+  const clientFields = ['c-prenom','c-nom','c-tel','c-email','c-adresse'];
+  if (clientFields.includes(e.target.id)) {
+    clearTimeout(_clientSyncTimer);
+    _clientSyncTimer = setTimeout(syncClientFromDevis, 800);
   }
 });
 
