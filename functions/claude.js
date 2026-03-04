@@ -45,9 +45,8 @@ function verifySupabaseToken(authHeader) {
 }
 
 function corsHeaders(origin) {
-  const allowed = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
   return {
-    'Access-Control-Allow-Origin':  allowed,
+    'Access-Control-Allow-Origin':  origin || '*',
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     'Access-Control-Max-Age':       '86400',
@@ -57,14 +56,6 @@ function corsHeaders(origin) {
 export async function onRequestPost(context) {
   const { request, env } = context;
   const origin = request.headers.get('origin') || '';
-
-  // CORS
-  if (origin && !ALLOWED_ORIGINS.includes(origin)) {
-    return new Response(JSON.stringify({ error: 'Origin non autorisée' }), {
-      status: 403,
-      headers: { 'Content-Type': 'application/json', ...corsHeaders(origin) },
-    });
-  }
 
   // Auth Supabase
   const authHeader = request.headers.get('authorization') || '';
