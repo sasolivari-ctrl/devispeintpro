@@ -733,8 +733,8 @@ textarea.inp{min-height:130px;resize:vertical;line-height:1.7;}
                   <input class="inp" id="c-prenom" placeholder="Jean" aria-label="Prénom du client">
                 </div>
                 <div class="field">
-                  <label>Nom / Société *</label>
-                  <input class="inp" id="c-nom" placeholder="Dupont ou Résidences du Parc" aria-label="Nom ou société du client" aria-required="true">
+                  <label>Nom *</label>
+                  <input class="inp" id="c-nom" placeholder="Dupont" aria-label="Nom du client" aria-required="true">
                 </div>
                 <div class="field">
                   <label>Téléphone</label>
@@ -4175,7 +4175,7 @@ let _clientSyncTimer   = null;   // timer debounce sync fiche client
 function syncClientFromDevis() {
   const prenom  = $('c-prenom')?.value?.trim() || '';
   const nom     = $('c-nom')?.value?.trim()    || '';
-  if (!nom || nom === 'Client') return;
+  if (!nom || nom.length < 2) return; // attendre au moins 2 caractères
   const tel     = $('c-tel')?.value?.trim()     || '';
   const email   = $('c-email')?.value?.trim()   || '';
   const adresse = $('c-adresse')?.value?.trim() || '';
@@ -4522,7 +4522,8 @@ async function sauvegarder() {
     // Clients
     for (const cl of clientsList) {
       try {
-        const row = {user_id:uid, type:cl.type||'particulier', prenom:cl.prenom||'', nom:cl.nom, tel:cl.tel||'', email:cl.email||'', adresse:cl.adresse||'', cp:cl.cp||'', ville:cl.ville||'', siret:cl.siret||'', notes:cl.notes||''};
+        if (!cl.nom || !cl.nom.trim()) continue; // pas de nom = on skip
+        const row = {user_id:uid, type:cl.type||'particulier', prenom:cl.prenom||'', nom:cl.nom.trim(), tel:cl.tel||'', email:cl.email||'', adresse:cl.adresse||'', cp:cl.cp||'', ville:cl.ville||'', siret:cl.siret||'', notes:cl.notes||''};
         if (cl._id) {
           await supa.from('clients').update(row).eq('id', cl._id);
         } else {
