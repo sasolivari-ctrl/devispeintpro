@@ -1331,17 +1331,20 @@ function renderClients() {
     : `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;">
         ${clientsList.map((cl,i) => `
           <div style="background:#fff;border:1px solid var(--cream2);border-radius:12px;padding:18px;box-shadow:0 2px 8px rgba(0,0,0,.04);">
-            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">
-              <div style="font-weight:700;font-size:15px;color:var(--ink);">${escapeHTML(cl.nom||'Sans nom')}</div>
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">
+              <div>
+                <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;background:${cl.type==='pro'?'#E8F0FE':'#F0EDE8'};color:${cl.type==='pro'?'#1A73E8':'#7A5C2E'};">${cl.type==='pro'?'PRO':'PARTICULIER'}</span>
+                <div style="font-weight:700;font-size:15px;color:var(--ink);margin-top:4px;">${escapeHTML((cl.prenom?cl.prenom+' ':'')+( cl.nom||'Sans nom'))}</div>
+              </div>
               <div style="display:flex;gap:6px;">
-                <button onclick="ouvrirModalClient(${i})" style="padding:4px 10px;background:var(--cream);border:1px solid var(--cream2);border-radius:6px;font-size:11px;cursor:pointer;font-weight:600;">✏️ Modifier</button>
+                <button onclick="ouvrirModalClient(${i})" style="padding:4px 10px;background:var(--cream);border:1px solid var(--cream2);border-radius:6px;font-size:11px;cursor:pointer;font-weight:600;">✏️</button>
                 <button onclick="supprimerClient(${i})" style="padding:4px 8px;background:#fff;border:1px solid #fcc;border-radius:6px;font-size:11px;cursor:pointer;color:#c00;">✕</button>
               </div>
             </div>
-            ${cl.tel ? `<div style="font-size:12px;color:#666;margin-bottom:4px;">📞 ${escapeHTML(cl.tel)}</div>` : ''}
-            ${cl.email ? `<div style="font-size:12px;color:#666;margin-bottom:4px;">✉️ ${escapeHTML(cl.email)}</div>` : ''}
-            ${cl.adresse ? `<div style="font-size:12px;color:#666;margin-bottom:4px;">📍 ${escapeHTML(cl.adresse)}</div>` : ''}
-            ${cl.siret ? `<div style="font-size:12px;color:#aaa;margin-bottom:4px;">SIRET : ${escapeHTML(cl.siret)}</div>` : ''}
+            ${cl.tel ? `<div style="font-size:12px;color:#666;margin-bottom:3px;">📞 ${escapeHTML(cl.tel)}</div>` : ''}
+            ${cl.email ? `<div style="font-size:12px;color:#666;margin-bottom:3px;">✉️ ${escapeHTML(cl.email)}</div>` : ''}
+            ${cl.adresse ? `<div style="font-size:12px;color:#666;margin-bottom:3px;">📍 ${escapeHTML(cl.adresse)}${cl.cp?' '+escapeHTML(cl.cp):''}${cl.ville?' '+escapeHTML(cl.ville):''}</div>` : ''}
+            ${cl.siret && cl.type==='pro' ? `<div style="font-size:11px;color:#aaa;margin-bottom:3px;">SIRET : ${escapeHTML(cl.siret)}</div>` : ''}
             ${cl.notes ? `<div style="font-size:11px;color:#aaa;margin-top:8px;padding-top:8px;border-top:1px solid var(--cream2);font-style:italic;">${escapeHTML(cl.notes)}</div>` : ''}
           </div>
         `).join('')}
@@ -1351,19 +1354,28 @@ function renderClients() {
 
 function ouvrirModalClient(idx) {
   const ex = document.getElementById('client-modal'); if (ex) ex.remove();
-  const cl = idx >= 0 ? clientsList[idx] : {nom:'',tel:'',email:'',adresse:'',siret:'',notes:''};
+  const cl = idx >= 0 ? clientsList[idx] : {type:'particulier',prenom:'',nom:'',tel:'',email:'',adresse:'',cp:'',ville:'',siret:'',notes:''};
   const titre = idx >= 0 ? 'Modifier le client' : 'Nouveau client';
+  const isPro = cl.type === 'pro';
   const m = document.createElement('div');
   m.id = 'client-modal';
   m.className = 'modal-overlay';
-  m.innerHTML = `<div style="background:#fff;border-radius:16px;padding:28px;width:100%;max-width:480px;box-shadow:0 20px 60px rgba(0,0,0,.3);font-family:'Plus Jakarta Sans',sans-serif;">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+  m.innerHTML = `<div style="background:#fff;border-radius:16px;padding:28px;width:100%;max-width:500px;box-shadow:0 20px 60px rgba(0,0,0,.3);font-family:'Plus Jakarta Sans',sans-serif;max-height:90vh;overflow-y:auto;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
       <div style="font-family:'Playfair Display',serif;font-size:18px;">${titre}</div>
       <button onclick="document.getElementById('client-modal').remove()" style="background:none;border:none;font-size:22px;cursor:pointer;color:#aaa;">×</button>
     </div>
-    <div style="display:flex;flex-direction:column;gap:12px;">
-      <div><label style="font-size:12px;font-weight:700;color:#555;display:block;margin-bottom:4px;">Nom *</label>
-        <input id="cl-nom" class="inp" value="${escapeHTML(cl.nom)}" placeholder="Nom du client" style="width:100%;"></div>
+    <div style="display:flex;gap:0;margin-bottom:18px;border:1.5px solid #E2DDD4;border-radius:9px;overflow:hidden;">
+      <button id="cl-tab-part" onclick="clToggleType('particulier')" style="flex:1;padding:9px;border:none;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;background:${isPro?'#F5F5F5':'var(--ink)'};color:${isPro?'#888':'var(--gold)'};">👤 Particulier</button>
+      <button id="cl-tab-pro" onclick="clToggleType('pro')" style="flex:1;padding:9px;border:none;border-left:1.5px solid #E2DDD4;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;background:${isPro?'var(--ink)':'#F5F5F5'};color:${isPro?'var(--gold)':'#888'};">🏢 Professionnel</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:11px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div><label style="font-size:12px;font-weight:700;color:#555;display:block;margin-bottom:4px;">Prénom</label>
+          <input id="cl-prenom" class="inp" value="${escapeHTML(cl.prenom||'')}" placeholder="Prénom" style="width:100%;"></div>
+        <div><label style="font-size:12px;font-weight:700;color:#555;display:block;margin-bottom:4px;">Nom *</label>
+          <input id="cl-nom" class="inp" value="${escapeHTML(cl.nom)}" placeholder="Nom" style="width:100%;"></div>
+      </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
         <div><label style="font-size:12px;font-weight:700;color:#555;display:block;margin-bottom:4px;">Téléphone</label>
           <input id="cl-tel" class="inp" value="${escapeHTML(cl.tel)}" placeholder="06 00 00 00 00" style="width:100%;"></div>
@@ -1371,11 +1383,17 @@ function ouvrirModalClient(idx) {
           <input id="cl-email" class="inp" type="email" value="${escapeHTML(cl.email)}" placeholder="client@email.com" style="width:100%;"></div>
       </div>
       <div><label style="font-size:12px;font-weight:700;color:#555;display:block;margin-bottom:4px;">Adresse</label>
-        <input id="cl-adresse" class="inp" value="${escapeHTML(cl.adresse)}" placeholder="Adresse complète" style="width:100%;"></div>
-      <div><label style="font-size:12px;font-weight:700;color:#555;display:block;margin-bottom:4px;">SIRET</label>
-        <input id="cl-siret" class="inp" value="${escapeHTML(cl.siret)}" placeholder="123 456 789 00012" style="width:100%;"></div>
+        <input id="cl-adresse" class="inp" value="${escapeHTML(cl.adresse||'')}" placeholder="Numéro et rue" style="width:100%;"></div>
+      <div style="display:grid;grid-template-columns:120px 1fr;gap:10px;">
+        <div><label style="font-size:12px;font-weight:700;color:#555;display:block;margin-bottom:4px;">Code postal</label>
+          <input id="cl-cp" class="inp" value="${escapeHTML(cl.cp||'')}" placeholder="75000" style="width:100%;"></div>
+        <div><label style="font-size:12px;font-weight:700;color:#555;display:block;margin-bottom:4px;">Ville</label>
+          <input id="cl-ville" class="inp" value="${escapeHTML(cl.ville||'')}" placeholder="Paris" style="width:100%;"></div>
+      </div>
+      <div id="cl-siret-block" style="display:${isPro?'block':'none'};"><label style="font-size:12px;font-weight:700;color:#555;display:block;margin-bottom:4px;">SIRET</label>
+        <input id="cl-siret" class="inp" value="${escapeHTML(cl.siret||'')}" placeholder="123 456 789 00012" style="width:100%;"></div>
       <div><label style="font-size:12px;font-weight:700;color:#555;display:block;margin-bottom:4px;">Notes</label>
-        <textarea id="cl-notes" class="inp" rows="3" placeholder="Notes libres..." style="width:100%;line-height:1.5;">${escapeHTML(cl.notes)}</textarea></div>
+        <textarea id="cl-notes" class="inp" rows="2" placeholder="Notes libres..." style="width:100%;line-height:1.5;">${escapeHTML(cl.notes||'')}</textarea></div>
     </div>
     <div style="display:flex;gap:8px;margin-top:18px;">
       <button onclick="document.getElementById('client-modal').remove()" style="flex:1;padding:11px;background:#F5F5F5;border:1.5px solid #E2DDD4;border-radius:9px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;">Annuler</button>
@@ -1383,16 +1401,32 @@ function ouvrirModalClient(idx) {
     </div>
   </div>`;
   document.body.appendChild(m);
-  setTimeout(() => document.getElementById('cl-nom')?.focus(), 100);
+  setTimeout(() => document.getElementById('cl-prenom')?.focus(), 100);
+}
+
+function clToggleType(type) {
+  const isPro = type === 'pro';
+  document.getElementById('cl-tab-part').style.background = isPro ? '#F5F5F5' : 'var(--ink)';
+  document.getElementById('cl-tab-part').style.color = isPro ? '#888' : 'var(--gold)';
+  document.getElementById('cl-tab-part').dataset.active = isPro ? '0' : '1';
+  document.getElementById('cl-tab-pro').style.background = isPro ? 'var(--ink)' : '#F5F5F5';
+  document.getElementById('cl-tab-pro').style.color = isPro ? 'var(--gold)' : '#888';
+  document.getElementById('cl-tab-pro').dataset.active = isPro ? '1' : '0';
+  document.getElementById('cl-siret-block').style.display = isPro ? 'block' : 'none';
 }
 
 function sauvegarderClient(idx) {
   const nom = document.getElementById('cl-nom')?.value?.trim();
   if (!nom) { showToast('Le nom est obligatoire', 'err'); return; }
+  const tabPro = document.getElementById('cl-tab-pro'); const isPro = tabPro && (tabPro.style.background.includes('111') || tabPro.style.background === 'var(--ink)' || tabPro.dataset.active === '1');
   const cl = {
+    type: isPro ? 'pro' : 'particulier',
+    prenom: document.getElementById('cl-prenom')?.value?.trim()||'',
     nom, tel: document.getElementById('cl-tel')?.value?.trim()||'',
     email: document.getElementById('cl-email')?.value?.trim()||'',
     adresse: document.getElementById('cl-adresse')?.value?.trim()||'',
+    cp: document.getElementById('cl-cp')?.value?.trim()||'',
+    ville: document.getElementById('cl-ville')?.value?.trim()||'',
     siret: document.getElementById('cl-siret')?.value?.trim()||'',
     notes: document.getElementById('cl-notes')?.value?.trim()||''
   };
@@ -4347,8 +4381,8 @@ async function chargerDonnees() {
   // Clients
   const {data:clts} = await supa.from('clients').select('*').eq('user_id',uid).order('nom',{ascending:true});
   if (clts) clientsList = clts.map(cl => ({
-    _id:cl.id, nom:cl.nom||'', tel:cl.tel||'', email:cl.email||'',
-    adresse:cl.adresse||'', siret:cl.siret||'', notes:cl.notes||''
+    _id:cl.id, type:cl.type||'particulier', prenom:cl.prenom||'', nom:cl.nom||'', tel:cl.tel||'', email:cl.email||'',
+    adresse:cl.adresse||'', cp:cl.cp||'', ville:cl.ville||'', siret:cl.siret||'', notes:cl.notes||''
   }));
 
   // Fournisseurs
@@ -4412,7 +4446,7 @@ async function sauvegarder() {
 
     // Clients
     for (const cl of clientsList) {
-      const row = {user_id:uid, nom:cl.nom, tel:cl.tel||'', email:cl.email||'', adresse:cl.adresse||'', siret:cl.siret||'', notes:cl.notes||''};
+      const row = {user_id:uid, type:cl.type||'particulier', prenom:cl.prenom||'', nom:cl.nom, tel:cl.tel||'', email:cl.email||'', adresse:cl.adresse||'', cp:cl.cp||'', ville:cl.ville||'', siret:cl.siret||'', notes:cl.notes||''};
       if (cl._id) {
         await supa.from('clients').update(row).eq('id', cl._id);
       } else {
