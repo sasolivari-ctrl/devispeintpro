@@ -1455,10 +1455,13 @@ function sauvegarderClient(idx) {
   showToast(idx >= 0 ? 'Client mis à jour ✓' : 'Client ajouté ✓', 'ok');
 }
 
-function supprimerClient(idx) {
+async function supprimerClient(idx) {
   if (!confirm('Supprimer ce client ?')) return;
   const cl = clientsList[idx];
-  if (cl._id) supa.from('clients').delete().eq('id', cl._id);
+  if (cl._id) {
+    const {error} = await supa.from('clients').delete().eq('id', cl._id);
+    if (error) { showToast('Erreur suppression', 'err'); return; }
+  }
   clientsList.splice(idx, 1);
   renderClients();
   showToast('Client supprimé', 'ok');
